@@ -1,0 +1,5 @@
+.vscode
+bin
+obj
+egrep_cpy/bin
+egrep_cpy/obj
