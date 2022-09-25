@@ -1,4 +1,5 @@
 ﻿#nullable disable
+namespace EGREP_CPY;
 
 public class Program
 {
@@ -9,6 +10,7 @@ public class Program
     public const int PARENTHESEOUVRANT = 0x16641664;
     public const int PARENTHESEFERMANT = 0x51515151;
     public const int DOT = 0xD07;
+    public const int EPSILON = 0x7E;
 
     private static string regEx = "a(b|c)*";
 
@@ -22,48 +24,47 @@ public class Program
         }
         else
         {
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.Write("  >> Please enter a regEx: ");
+            Console.WriteLine("  >> Please enter a regEx: ");
             regEx = Console.ReadLine();
         }
 
-        Console.ResetColor();
-        Console.WriteLine($"  >> Parsing RegEx {regEx}");
-        RegExTree ret;
+        Logger.LogWarning($"  >> Parsing RegEx {regEx}");
 
         if (regEx.Length < 1)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("  >> ERROR: empty regEx.");
+            Logger.LogError("  >> ERROR: empty regEx.");
         }
         else
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("     >> ASCII codes: [" + (int)regEx[0]);
-            
+            Logger.LogSuccess("     >> ASCII codes: [" + (int)regEx[0], false);
+
             for (int i = 1; i < regEx.Length; i++)
             {
-                Console.Write("," + (int)regEx[i]);
+                Logger.LogSuccess("," + (int)regEx[i], false);
             }
-            
-            Console.WriteLine("].");
+
+            Logger.LogSuccess("].");
 
             try
             {
-                ret = RegExParser.parse(regEx);
-                Console.WriteLine("     >> Tree result: " + ret.toString() + ".");
+                RegExTree ret = RegExParser.Parse(regEx);
+                Logger.LogSuccess("     >> Tree result: " + ret.ToString() + ".");
+                Logger.LogWarning("  >> Parsing over.");
+                Logger.LogWarning("  >> Creating the Non Deterministic Finite Automaton (NFA) from the syntax tree.");
+                Automata ndfa = NdfaGenerator.Generate(ret);
+                Logger.LogSuccess("    >>" + ndfa.ToString());
+                Logger.LogWarning("  >> NDFA Generation over.");
+                Logger.LogWarning("  >> Creating the Deterministic Finite Automaton (DFA) from the previously generated NDFA.");
+                Automata dfa = DfaGenerator.Generate(ndfa);
+                Logger.LogWarning("  >> DFA Generation over.");
             }
             catch (Exception e)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("  >> ERROR: syntax error for regEx \"" + regEx + "\".");
-                Console.WriteLine("  >> ERROR: " + e.Message);
+                Logger.LogError("  >> ERROR: " + e.Message);
+                Logger.LogError("  >> TRACE: " + e.StackTrace);
             }
         }
 
-        Console.ResetColor();
-        Console.WriteLine("  >> Parsing over.");
-        Console.WriteLine("  >> Creating the Non Deterministic Finite Automaton (NFA) from the syntax tree.");
     }
 
 }

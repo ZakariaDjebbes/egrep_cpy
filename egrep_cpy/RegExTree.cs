@@ -1,40 +1,104 @@
+namespace EGREP_CPY;
+
 public class RegExTree
 {
-
     public int Root { get; set; }
-    public List<RegExTree> SubTrees { get => subTrees; set => subTrees = value; }
+    public List<RegExTree> SubTrees { get; set; }
+    public RegExTree? Parent { get; set; }
+    public bool ToBeComputed
+    {
+        get => toBeComputed;
+        set
+        {
+            toBeComputed = value;
+            IsComputed = !value;
+        }
+    }
+    public bool IsComputed { get; private set; }
+    public bool IsLeaf { get => SubTrees.Count == 0; }
 
-    private List<RegExTree> subTrees;
+    private bool toBeComputed;
 
     public RegExTree(int root, List<RegExTree> subTrees)
     {
         Root = root;
-        this.subTrees = subTrees;
+        SubTrees = subTrees;
     }
 
     //FROM TREE TO PARENTHESIS
-    public String toString()
+    public override String ToString()
     {
-        if (!subTrees.Any())
+        if (!SubTrees.Any())
         {
-            return rootToString();
+            return RootToString();
         }
 
-        String result = rootToString() + "(" + subTrees[0].toString();
+        String result = RootToString() + "(" + SubTrees[0].ToString();
 
-        for (int i = 1; i < subTrees.Count; i++)
+        for (int i = 1; i < SubTrees.Count; i++)
         {
-            result += "," + subTrees[i].toString();
+            result += "," + SubTrees[i].ToString();
         }
 
         return result + ")";
     }
-    private String rootToString()
+
+    public String RootToString()
     {
         if (Root == Program.CONCAT) return ".";
         if (Root == Program.ETOILE) return "*";
         if (Root == Program.ALTERN) return "|";
         if (Root == Program.DOT) return ".";
         return Convert.ToString((char)Root);
+    }
+
+    public void SetupComputationState()
+    {
+        SetParents();
+
+        if (IsLeaf)
+        {
+            ToBeComputed = true;
+        }
+
+        foreach (RegExTree subTree in SubTrees)
+        {
+            subTree.SetupComputationState();
+        }
+    }
+
+    public void UpdateComputationState()
+    {
+        if (!IsLeaf && AllSubTreesComputed() && !(Parent?.ToBeComputed).GetValueOrDefault() && !IsComputed)
+        {
+            ToBeComputed = true;
+        }
+
+        foreach (RegExTree subTree in SubTrees)
+        {
+            subTree.UpdateComputationState();
+        }
+    }
+
+    private bool AllSubTreesComputed()
+    {
+        foreach (RegExTree subTree in SubTrees)
+        {
+            if (!subTree.IsComputed)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void SetParents()
+    {
+        foreach (RegExTree subTree in SubTrees)
+        {
+            subTree.Parent = this;
+            subTree.SetParents();
+        }
     }
 }
