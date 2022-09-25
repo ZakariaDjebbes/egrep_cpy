@@ -19,7 +19,7 @@ public struct Automata
 
     private string TableToString(IList<int> table)
     {
-        if(table.Count == 0)
+        if (table.Count == 0)
             return "[]";
 
         String result = "[";
@@ -76,6 +76,33 @@ public struct Automata
 
         return uniqueTransitions;
     }
+
+    public bool TryText(string text)
+    {
+        var currentState = InitialStates[0];
+        var currentChar = 0;
+
+        while (currentChar < text.Length)
+        {
+            List<int> transition = Transitions.Find(t => t[0] == currentState && t[2] == text[currentChar])
+                                   ?? new List<int>();
+
+            if (transition.Count == 0)
+                return false;
+
+            if (IsFinalState(transition[1]))
+                return true;
+
+            currentState = transition[1];
+            currentChar++;
+        }
+
+        return FinalStates.Contains(currentState);
+    }
+
+    public bool IsFinalState(int state) => FinalStates.Contains(state);
+
+    public bool IsInitialStates(int state) => InitialStates.Contains(state);
 
     public override string ToString()
     {

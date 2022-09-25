@@ -24,7 +24,7 @@ public class Program
         }
         else
         {
-            Console.WriteLine("  >> Please enter a regEx: ");
+            Logger.LogInfo("  >> Please enter a regEx: ");
             regEx = Console.ReadLine();
         }
 
@@ -52,11 +52,31 @@ public class Program
                 Logger.LogWarning("  >> Parsing over.");
                 Logger.LogWarning("  >> Creating the Non Deterministic Finite Automaton (NFA) from the syntax tree.");
                 Automata ndfa = NdfaGenerator.Generate(ret);
-                Logger.LogSuccess("    >>" + ndfa.ToString());
+                Logger.LogSuccess("    >> Resulting Automata : ");
+                Logger.LogSuccess("    >> " + ndfa.ToString());
                 Logger.LogWarning("  >> NDFA Generation over.");
                 Logger.LogWarning("  >> Creating the Deterministic Finite Automaton (DFA) from the previously generated NDFA.");
                 Automata dfa = DfaGenerator.Generate(ndfa);
+                Logger.LogSuccess("    >> Resulting Automata : ");
+                Logger.LogSuccess("    >> " + dfa.ToString());
                 Logger.LogWarning("  >> DFA Generation over.");
+                Logger.LogWarning("  >> ...");
+
+                Logger.LogInfo("  >> Please enter some text or -1 to exit : ", false);
+                var text = Console.ReadLine();
+
+                while (text != "-1")
+                {
+                    if (dfa.TryText(text))
+                        Logger.LogSuccess("    >> accepted");
+                    else
+                        Logger.LogError("    >> rejected");
+
+                    Logger.LogInfo("  >> Please enter some text or -1 to exit : ", false);
+                    text = Console.ReadLine();
+                }
+
+                Logger.LogWarning("  >> Exiting...");
             }
             catch (Exception e)
             {
