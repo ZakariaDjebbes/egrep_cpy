@@ -16,15 +16,13 @@ public class Program
 
     public static void Main(String[] args)
     {
-        Console.WriteLine("Started egrep_cpy...");
-
         if (args.Length != 0)
         {
             regEx = args[0];
         }
         else
         {
-            Logger.LogInfo("  >> Please enter a regEx: ");
+            Logger.LogInfo("  >> Please enter a regEx: ", false);
             regEx = Console.ReadLine();
         }
 

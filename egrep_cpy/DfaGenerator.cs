@@ -26,7 +26,7 @@ public static class DfaGenerator
         List<List<int>> treatedStates = new List<List<int>>();
         List<List<int>> oldStates = new List<List<int>>();
 
-        oldStates.Add(ndfa.InitialStates);
+        oldStates.Add(new List<int>(ndfa.InitialStates));
         oldStates[0].AddRange(GetOldStates(ndfa, oldStates[0]));
 
         for (int i = 0; i < oldStates.Count; i++)
@@ -61,7 +61,6 @@ public static class DfaGenerator
                 }
 
                 result.Transitions.AddRange(transitions);
-                // Logger.LogInfo($"   >> {result}");
             }
 
         }
