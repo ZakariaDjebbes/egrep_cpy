@@ -36,31 +36,31 @@ public class Program
         }
         else
         {
-            Logger.LogSuccess("     >> ASCII codes: [" + (int)regEx[0], false);
+            // Logger.LogSuccess("     >> ASCII codes: [" + (int)regEx[0], false);
 
-            for (int i = 1; i < regEx.Length; i++)
-            {
-                Logger.LogSuccess("," + (int)regEx[i], false);
-            }
+            // for (int i = 1; i < regEx.Length; i++)
+            // {
+            //     Logger.LogSuccess("," + (int)regEx[i], false);
+            // }
 
-            Logger.LogSuccess("].");
+            // Logger.LogSuccess("].");
 
             try
             {
                 RegExTree ret = RegExParser.Parse(regEx);
-                Logger.LogSuccess("     >> Tree result: " + ret.ToString() + ".");
-                Logger.LogWarning("  >> Parsing over.");
-                Logger.LogWarning("  >> Creating the Non Deterministic Finite Automaton (NFA) from the syntax tree.");
+                // Logger.LogSuccess("     >> Tree result: " + ret.ToString() + ".");
+                // Logger.LogWarning("  >> Parsing over.");
+                // Logger.LogWarning("  >> Creating the Non Deterministic Finite Automaton (NFA) from the syntax tree.");
                 Automata ndfa = NdfaGenerator.Generate(ret);
-                Logger.LogSuccess("    >> Resulting Automata : ");
-                Logger.LogSuccess("    >> " + ndfa.ToString());
-                Logger.LogWarning("  >> NDFA Generation over.");
-                Logger.LogWarning("  >> Creating the Deterministic Finite Automaton (DFA) from the previously generated NDFA.");
+                // Logger.LogSuccess("    >> Resulting Automata : ");
+                // Logger.LogSuccess("    >> " + ndfa.ToString());
+                // Logger.LogWarning("  >> NDFA Generation over.");
+                // Logger.LogWarning("  >> Creating the Deterministic Finite Automaton (DFA) from the previously generated NDFA.");
                 Automata dfa = DfaGenerator.Generate(ndfa);
-                Logger.LogSuccess("    >> Resulting Automata : ");
-                Logger.LogSuccess("    >> " + dfa.ToString());
-                Logger.LogWarning("  >> DFA Generation over.");
-                Logger.LogWarning("  >> ...");
+                // Logger.LogSuccess("    >> Resulting Automata : ");
+                // Logger.LogSuccess("    >> " + dfa.ToString());
+                // Logger.LogWarning("  >> DFA Generation over.");
+                // Logger.LogWarning("  >> ...");
                 string text;
                 do
                 {

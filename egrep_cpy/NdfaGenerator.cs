@@ -59,6 +59,9 @@ public static class NdfaGenerator
                         intermediateAutomatas.Remove(right.Key);
                         intermediateAutomatas.Add(node, result);
                         break;
+                    case Program.ANY:
+                        intermediateAutomatas.Add(node, ComputeAny(node));                
+                        break;
                     default: //LETTRE
                         intermediateAutomatas.Add(node, ComputeDefaultNodes(node));
                         break;
@@ -72,6 +75,29 @@ public static class NdfaGenerator
         }
 
         return intermediateAutomatas.First().Value;
+    }
+
+    private const int UPPER_ASCII_BOUND = 255;
+    private const int LOWER_ASCII_BOUND = 0;
+
+    private static Automata ComputeAny(RegExTree node)
+    {
+        var initialState = StateCounter;
+        var finalState = StateCounter;
+
+        Automata result = new Automata
+        {
+            InitialStates = new List<int> { initialState },
+            FinalStates = new List<int> { finalState },
+            Transitions = new List<List<int>>()
+        };
+
+        for (int i = LOWER_ASCII_BOUND; i < UPPER_ASCII_BOUND; i++)
+        {
+            result.Transitions.Add(new List<int> { initialState, finalState, i });
+        }
+        
+        return result;
     }
 
     private static Automata ComputeAltern(RegExTree node, Automata left, Automata right)
