@@ -16,6 +16,8 @@ public class Program
 
     public static void Main(String[] args)
     {
+    start:
+
         if (args.Length != 0)
         {
             regEx = args[0];
@@ -59,20 +61,27 @@ public class Program
                 Logger.LogSuccess("    >> " + dfa.ToString());
                 Logger.LogWarning("  >> DFA Generation over.");
                 Logger.LogWarning("  >> ...");
-
-                Logger.LogInfo("  >> Please enter some text or -1 to exit : ", false);
-                var text = Console.ReadLine();
-
-                while (text != "-1")
+                string text;
+                do
                 {
+                    Logger.LogInfo("  >> Please enter some text or -1 to exit : ", false);
+                    text = Console.ReadLine();
+
+                    if (text == "-2")
+                    {
+                        goto start;
+                    }
+                    else if (text == "-1")
+                    {
+                        break;
+                    }
+
                     if (dfa.TryText(text))
                         Logger.LogSuccess("    >> accepted");
                     else
                         Logger.LogError("    >> rejected");
+                } while (true);
 
-                    Logger.LogInfo("  >> Please enter some text or -1 to exit : ", false);
-                    text = Console.ReadLine();
-                }
 
                 Logger.LogWarning("  >> Exiting...");
             }

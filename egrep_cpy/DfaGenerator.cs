@@ -22,7 +22,7 @@ public static class DfaGenerator
             Transitions = new List<List<int>>()
         };
 
-        Dictionary<int, List<int>> uniqueCharsTransitions;
+        Dictionary<int, HashSet<int>> uniqueCharsTransitions;
         List<List<int>> treatedStates = new List<List<int>>();
         List<List<int>> oldStates = new List<List<int>>();
 
@@ -34,10 +34,10 @@ public static class DfaGenerator
             while (!treatedStates.ContainsList(oldStates[i]))
             {
                 treatedStates.Add(oldStates[i]);
-                uniqueCharsTransitions = new Dictionary<int, List<int>>();
+                uniqueCharsTransitions = new Dictionary<int, HashSet<int>>();
                 uniqueCharsTransitions.AddKeys(ndfa.GetUniqueDefaultTransitions());
                 GetUniqueCharTransitions(ndfa, oldStates[i], ref uniqueCharsTransitions);
-                var newState = StateCounter;
+                var newState = oldStates.GetIndexOfList(oldStates[i]) == -1 ? stateCounter : oldStates.GetIndexOfList(oldStates[i]);
 
                 if (IsOldStatesInitial(oldStates[i], ndfa))
                 {
@@ -55,8 +55,8 @@ public static class DfaGenerator
                 {
                     if (uniqueCharsTransitions[uniqueChar].Count > 0)
                     {
-                        oldStates.Add(uniqueCharsTransitions[uniqueChar]);
-                        transitions.Add(new List<int> { i, oldStates.GetIndexOfList(uniqueCharsTransitions[uniqueChar]), uniqueChar });
+                        oldStates.Add(uniqueCharsTransitions[uniqueChar].ToList());
+                        transitions.Add(new List<int> { i, oldStates.GetIndexOfList(uniqueCharsTransitions[uniqueChar].ToList()), uniqueChar });
                     }
                 }
 
@@ -90,7 +90,7 @@ public static class DfaGenerator
         return false;
     }
 
-    private static void GetUniqueCharTransitions(Automata ndfa, List<int> oldStates, ref Dictionary<int, List<int>> uniqueCharsTransitions)
+    private static void GetUniqueCharTransitions(Automata ndfa, List<int> oldStates, ref Dictionary<int, HashSet<int>> uniqueCharsTransitions)
     {
         foreach (var uniqueChar in uniqueCharsTransitions.Keys)
         {
@@ -103,7 +103,11 @@ public static class DfaGenerator
                     {
                         ts.AddRange(GetFollowingEpsilonStates(ndfa, ts[i]));
                     }
-                    uniqueCharsTransitions[uniqueChar].AddRange(ts);
+
+                    foreach (var t in ts)
+                    {
+                        uniqueCharsTransitions[uniqueChar].Add(t);
+                    }
                 }
             }
         }
@@ -158,6 +162,7 @@ public static class DfaGenerator
                 if (transition[2] == Program.EPSILON)
                 {
                     result.Add(transition[1]);
+                    result.AddRange(GetFollowingEpsilonStates(ndfa, transition[1]));
                 }
             }
         }
