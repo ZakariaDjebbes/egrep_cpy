@@ -14,7 +14,6 @@ public static class NdfaGenerator
 
     public static Automata Generate(RegExTree tree)
     {
-        // Automata result;
         Dictionary<RegExTree, Automata> intermediateAutomatas = new Dictionary<RegExTree, Automata>();
 
         tree.SetupComputationState();
@@ -22,7 +21,6 @@ public static class NdfaGenerator
         {
             tree.UpdateComputationState();
             List<RegExTree> toBeComputed = GetToBeComputedNodes(tree);
-            //TODO MOVE DICTIONNARY HERE ONCE IT WORKS
 
             foreach (RegExTree node in toBeComputed)
             {
@@ -30,7 +28,7 @@ public static class NdfaGenerator
 
                 switch (node.Root)
                 {
-                    case Program.CONCAT: // .
+                    case RegExTree.CONCAT: // .
                         var leftChild = intermediateAutomatas.Where(x => x.Key == node.SubTrees[0]).First();
                         var rightChild = intermediateAutomatas.Where(x => x.Key == node.SubTrees[1]).First();
 
@@ -41,15 +39,15 @@ public static class NdfaGenerator
 
                         intermediateAutomatas.Add(node, result);
                         break;
-                    case Program.ETOILE: // *
+                    case RegExTree.REPEAT: // *
                         var child = intermediateAutomatas.Where(x => x.Key == node.SubTrees[0]).First();
 
-                        result = ComputeEtoile(node, child.Value);
+                        result = ComputeRepeat(node, child.Value);
 
                         intermediateAutomatas.Remove(child.Key);
                         intermediateAutomatas.Add(node, result);
                         break;
-                    case Program.ALTERN: // | 
+                    case RegExTree.ALTERN: // | 
                         var left = intermediateAutomatas.Where(x => x.Key == node.SubTrees[0]).First();
                         var right = intermediateAutomatas.Where(x => x.Key == node.SubTrees[1]).First();
 
@@ -59,10 +57,10 @@ public static class NdfaGenerator
                         intermediateAutomatas.Remove(right.Key);
                         intermediateAutomatas.Add(node, result);
                         break;
-                    case Program.ANY:
+                    case RegExTree.ANY: // any
                         intermediateAutomatas.Add(node, ComputeAny(node));                
                         break;
-                    default: //LETTRE
+                    default: // ANY CHARACTER EXCEPT ANY (.)
                         intermediateAutomatas.Add(node, ComputeDefaultNodes(node));
                         break;
                 }
@@ -112,10 +110,10 @@ public static class NdfaGenerator
 
         left.Transitions.AddRange(new List<List<int>>()
         {
-            new List<int> { newStart, oldLeftStart, Program.EPSILON },
-            new List<int> { newStart, oldRightStart, Program.EPSILON },
-            new List<int> { oldLeftEnd, newEnd, Program.EPSILON },
-            new List<int> { oldRightEnd, newEnd, Program.EPSILON }
+            new List<int> { newStart, oldLeftStart, RegExTree.EPSILON },
+            new List<int> { newStart, oldRightStart, RegExTree.EPSILON },
+            new List<int> { oldLeftEnd, newEnd, RegExTree.EPSILON },
+            new List<int> { oldRightEnd, newEnd, RegExTree.EPSILON }
         });
 
         left.Transitions.AddRange(right.Transitions);
@@ -135,7 +133,7 @@ public static class NdfaGenerator
         int oldLeftEnd = left.FinalStates[0];
         int oldRightStart = right.InitialStates[0];
 
-        left.Transitions.Add(new List<int> { oldLeftEnd, oldRightStart, Program.EPSILON });
+        left.Transitions.Add(new List<int> { oldLeftEnd, oldRightStart, RegExTree.EPSILON });
         left.Transitions.AddRange(right.Transitions);
 
         return new Automata
@@ -146,7 +144,7 @@ public static class NdfaGenerator
         };
     }
 
-    private static Automata ComputeEtoile(RegExTree node, Automata childAutomata)
+    private static Automata ComputeRepeat(RegExTree node, Automata childAutomata)
     {
         int newStart = StateCounter;
         int newEnd = StateCounter;
@@ -155,10 +153,10 @@ public static class NdfaGenerator
 
         childAutomata.Transitions.AddRange(new List<List<int>>()
         {
-            new List<int> { newStart, oldStart, Program.EPSILON },
-            new List<int> { oldEnd, newEnd, Program.EPSILON },
-            new List<int> { oldEnd, oldStart, Program.EPSILON },
-            new List<int> { newStart, newEnd, Program.EPSILON },
+            new List<int> { newStart, oldStart, RegExTree.EPSILON },
+            new List<int> { oldEnd, newEnd, RegExTree.EPSILON },
+            new List<int> { oldEnd, oldStart, RegExTree.EPSILON },
+            new List<int> { newStart, newEnd, RegExTree.EPSILON },
         });
 
         return new Automata

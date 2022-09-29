@@ -1,3 +1,4 @@
+using System.Numerics;
 namespace EGREP_CPY;
 
 public struct Automata
@@ -44,10 +45,7 @@ public struct Automata
             result += "[";
             for (int j = 0; j < table[i].Count; j++)
             {
-                if (j == 2)
-                    result += $"{CodeToString(table[i][j])}";
-                else
-                    result += $"{table[i][j]}";
+                result += $"{table[i][j]}";
 
                 if (j != table[i].Count - 1)
                     result += ",";
@@ -77,27 +75,60 @@ public struct Automata
         return uniqueTransitions;
     }
 
-    public bool TryText(string text)
+    private int TryChar(char c, int from)
     {
-        var currentState = InitialStates[0];
-        var currentChar = 0;
+        List<int> transition = Transitions.Find(t => t[0] == from && t[2] == c)
+                               ?? new List<int>();
 
-        while (currentChar < text.Length)
+
+        var count = Transitions.FindAll(t => t[0] == from && t[2] == c).Count;
+
+        if (count > 1) // Should never happen to be asked about
+            throw new InvalidDataException("There is more than one transition with the same input");
+
+        if (transition.Count == 0)
         {
-            List<int> transition = Transitions.Find(t => t[0] == currentState && t[2] == text[currentChar])
-                                   ?? new List<int>();
+            return -1;
+        }
+        else
+        {
+            return transition[1];
+        }
+    }
 
-            if (transition.Count == 0)
-                return false;
+    public Dictionary<Vector2, string> MatchBruteForce(string text)
+    {
+        var res = new Dictionary<Vector2, string>();
+        var initialState = initialStates[0];
+        var matchStart = -1;
 
-            if (IsFinalState(transition[1]))
-                return true;
+        for (int i = 0; i < text.Length; i++)
+        {
+            var c = text[i];
+            var currentState = TryChar(c, initialState);
 
-            currentState = transition[1];
-            currentChar++;
+            if (currentState != -1)
+            {
+                initialState = currentState;
+
+                if (matchStart == -1)
+                    matchStart = i;
+
+                if (IsFinalState(currentState))
+                {
+                    res.Add(new Vector2(matchStart, i), text.SubStr(matchStart, i));
+                    initialState = initialStates[0];
+                    matchStart = -1;
+                }
+            }
+            else 
+            {
+                initialState = initialStates[0];
+                matchStart = -1;
+            }
         }
 
-        return FinalStates.Contains(currentState);
+        return res;
     }
 
     public bool IsFinalState(int state) => FinalStates.Contains(state);
@@ -112,15 +143,15 @@ public struct Automata
 
     private String CodeToString(int code)
     {
-        if (code == Program.CONCAT) return ".";
-        if (code == Program.ETOILE) return "*";
-        if (code == Program.ALTERN) return "|";
-        if (code == Program.ANY) return ".";
-        if (code == Program.EPSILON) return "ε";
+        if (code == RegExTree.CONCAT) return ".";
+        if (code == RegExTree.REPEAT) return "*";
+        if (code == RegExTree.ALTERN) return "|";
+        if (code == RegExTree.ANY) return ".";
+        if (code == RegExTree.EPSILON) return "ε";
 
         return Convert.ToString((char)code);
     }
 
     private bool IsDefaultTransition(int code)
-        => code != Program.CONCAT && code != Program.ETOILE && code != Program.ALTERN && code != Program.ANY && code != Program.EPSILON;
+        => code != RegExTree.CONCAT && code != RegExTree.REPEAT && code != RegExTree.ALTERN && code != RegExTree.ANY && code != RegExTree.EPSILON;
 }

@@ -137,4 +137,7 @@ public static class Extensions
 
         return result;
     }
+
+    public static string SubStr(this string str, int start, int end) => str.Substring(start, end - start + 1);
+
 }

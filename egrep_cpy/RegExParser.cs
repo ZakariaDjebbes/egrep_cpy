@@ -17,19 +17,19 @@ public static class RegExParser
 
     private static int CharToRoot(char c)
     {
-        if (c == '.') return Program.ANY;
-        if (c == '*') return Program.ETOILE;
-        if (c == '|') return Program.ALTERN;
-        if (c == '(') return Program.PARENTHESEOUVRANT;
-        if (c == ')') return Program.PARENTHESEFERMANT;
+        if (c == '.') return RegExTree.ANY;
+        if (c == '*') return RegExTree.REPEAT;
+        if (c == '|') return RegExTree.ALTERN;
+        if (c == '(') return RegExTree.OPENING_PARENTHESIS;
+        if (c == ')') return RegExTree.CLOSING_PARENTHESIS;
 
         return (int)c;
     }
 
     private static RegExTree Parse(List<RegExTree> result)
     {
-        while (ContainParenthese(result)) result = ProcessParenthese(result);
-        while (ContainEtoile(result)) result = ProcessEtoile(result);
+        while (ContainParenthesis(result)) result = ProcessParenthesis(result);
+        while (ContainRepeat(result)) result = ProcessRepeat(result);
         while (ContainConcat(result)) result = ProcessConcat(result);
         while (ContainAltern(result)) result = ProcessAltern(result);
 
@@ -38,11 +38,11 @@ public static class RegExParser
         return RemoveProtection(result[0]);
     }
 
-    private static bool ContainParenthese(List<RegExTree> trees)
+    private static bool ContainParenthesis(List<RegExTree> trees)
     {
         foreach (RegExTree t in trees)
         {
-            if (t.Root == Program.PARENTHESEFERMANT || t.Root == Program.PARENTHESEOUVRANT)
+            if (t.Root == RegExTree.CLOSING_PARENTHESIS || t.Root == RegExTree.OPENING_PARENTHESIS)
             {
                 return true;
             }
@@ -50,21 +50,21 @@ public static class RegExParser
         return false;
     }
 
-    private static List<RegExTree> ProcessParenthese(List<RegExTree> trees)
+    private static List<RegExTree> ProcessParenthesis(List<RegExTree> trees)
     {
         List<RegExTree> result = new List<RegExTree>();
         bool found = false;
 
         foreach (RegExTree t in trees)
         {
-            if (!found && t.Root == Program.PARENTHESEFERMANT)
+            if (!found && t.Root == RegExTree.CLOSING_PARENTHESIS)
             {
                 bool done = false;
                 List<RegExTree> content = new List<RegExTree>();
 
                 while (!done && result.Any())
                 {
-                    if (result[result.Count - 1].Root == Program.PARENTHESEOUVRANT)
+                    if (result[result.Count - 1].Root == RegExTree.OPENING_PARENTHESIS)
                     {
                         done = true;
                         result.RemoveAt(result.Count - 1);
@@ -87,7 +87,7 @@ public static class RegExParser
 
                 found = true;
                 subTrees.Add(Parse(content));
-                result.Add(new RegExTree(Program.PROTECTION, subTrees));
+                result.Add(new RegExTree(RegExTree.PROTECTION, subTrees));
             }
             else
             {
@@ -98,11 +98,11 @@ public static class RegExParser
         return result;
     }
 
-    private static bool ContainEtoile(List<RegExTree> trees)
+    private static bool ContainRepeat(List<RegExTree> trees)
     {
         foreach (RegExTree t in trees)
         {
-            if (t.Root == Program.ETOILE && !t.SubTrees.Any())
+            if (t.Root == RegExTree.REPEAT && !t.SubTrees.Any())
             {
                 return true;
             }
@@ -111,14 +111,14 @@ public static class RegExParser
         return false;
     }
 
-    private static List<RegExTree> ProcessEtoile(List<RegExTree> trees)
+    private static List<RegExTree> ProcessRepeat(List<RegExTree> trees)
     {
         List<RegExTree> result = new List<RegExTree>();
         bool found = false;
 
         foreach (RegExTree t in trees)
         {
-            if (!found && t.Root == Program.ETOILE && !t.SubTrees.Any())
+            if (!found && t.Root == RegExTree.REPEAT && !t.SubTrees.Any())
             {
                 if (!result.Any())
                 {
@@ -131,7 +131,7 @@ public static class RegExParser
                 found = true;
                 result.RemoveAt(result.Count - 1);
                 subTrees.Add(last);
-                result.Add(new RegExTree(Program.ETOILE, subTrees));
+                result.Add(new RegExTree(RegExTree.REPEAT, subTrees));
             }
             else
             {
@@ -147,13 +147,13 @@ public static class RegExParser
 
         foreach (RegExTree t in trees)
         {
-            if (!firstFound && t.Root != Program.ALTERN)
+            if (!firstFound && t.Root != RegExTree.ALTERN)
             {
                 firstFound = true; continue;
             }
             if (firstFound)
             {
-                if (t.Root != Program.ALTERN)
+                if (t.Root != RegExTree.ALTERN)
                 {
                     return true;
                 }
@@ -174,21 +174,21 @@ public static class RegExParser
 
         foreach (RegExTree t in trees)
         {
-            if (!found && !firstFound && t.Root != Program.ALTERN)
+            if (!found && !firstFound && t.Root != RegExTree.ALTERN)
             {
                 firstFound = true;
                 result.Add(t);
                 continue;
             }
 
-            if (!found && firstFound && t.Root == Program.ALTERN)
+            if (!found && firstFound && t.Root == RegExTree.ALTERN)
             {
                 firstFound = false;
                 result.Add(t);
                 continue;
             }
 
-            if (!found && firstFound && t.Root != Program.ALTERN)
+            if (!found && firstFound && t.Root != RegExTree.ALTERN)
             {
                 List<RegExTree> subTrees = new List<RegExTree>();
                 RegExTree last = result[result.Count - 1];
@@ -197,7 +197,7 @@ public static class RegExParser
                 result.RemoveAt(result.Count - 1);
                 subTrees.Add(last);
                 subTrees.Add(t);
-                result.Add(new RegExTree(Program.CONCAT, subTrees));
+                result.Add(new RegExTree(RegExTree.CONCAT, subTrees));
             }
             else
             {
@@ -213,7 +213,7 @@ public static class RegExParser
     {
         foreach (RegExTree t in trees)
         {
-            if (t.Root == Program.ALTERN && !t.SubTrees.Any())
+            if (t.Root == RegExTree.ALTERN && !t.SubTrees.Any())
             {
                 return true;
             }
@@ -231,7 +231,7 @@ public static class RegExParser
 
         foreach (RegExTree t in trees)
         {
-            if (!found && t.Root == Program.ALTERN && !t.SubTrees.Any())
+            if (!found && t.Root == RegExTree.ALTERN && !t.SubTrees.Any())
             {
                 if (!result.Any())
                 {
@@ -256,7 +256,7 @@ public static class RegExParser
                 done = true;
                 subTrees.Add(gauche);
                 subTrees.Add(t);
-                result.Add(new RegExTree(Program.ALTERN, subTrees));
+                result.Add(new RegExTree(RegExTree.ALTERN, subTrees));
             }
             else
             {
@@ -269,7 +269,7 @@ public static class RegExParser
 
     private static RegExTree RemoveProtection(RegExTree tree)
     {
-        if (tree.Root == Program.PROTECTION && tree.SubTrees.Count != 1)
+        if (tree.Root == RegExTree.PROTECTION && tree.SubTrees.Count != 1)
         {
             throw new Exception();
         }
@@ -279,7 +279,7 @@ public static class RegExParser
             return tree;
         }
 
-        if (tree.Root == Program.PROTECTION)
+        if (tree.Root == RegExTree.PROTECTION)
         {
             return RemoveProtection(tree.SubTrees[0]);
         }

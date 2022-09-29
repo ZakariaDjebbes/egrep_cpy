@@ -2,9 +2,14 @@ namespace EGREP_CPY;
 
 public static class Logger
 {
-    public static void Log(object message, bool line = true, ConsoleColor color = ConsoleColor.White)
+    public static void Log(object message, ConsoleColor color = ConsoleColor.White, bool line = true, bool timestamp = false)
     {
         Console.ForegroundColor = color;
+
+        if (timestamp)
+        {
+            Console.Write($"[{DateTime.Now.ToString("HH:mm:ss.ff")}] - ");
+        }
 
         if (line)
         {
@@ -18,23 +23,23 @@ public static class Logger
         Console.ResetColor();
     }
 
-    public static void LogError(object message, bool line = true)
+    public static void LogError(object message, bool line = true, bool timestamp = false)
     {
-        Log(message, line, ConsoleColor.Red);
-    }
-    
-    public static void LogWarning(object message, bool line = true)
-    {
-        Log(message, line, ConsoleColor.Yellow);
+        Log(message, ConsoleColor.Red, line, timestamp);
     }
 
-    public static void LogSuccess(object message, bool line = true)
+    public static void LogWarning(object message, bool line = true, bool timestamp = false)
     {
-        Log(message, line, ConsoleColor.Green);
+        Log(message, ConsoleColor.Yellow, line, timestamp);
     }
 
-    public static void LogInfo(object message, bool line = true)
+    public static void LogSuccess(object message, bool line = true, bool timestamp = false)
     {
-        Log(message, line, ConsoleColor.Blue);
+        Log(message, ConsoleColor.Green, line, timestamp);
+    }
+
+    public static void LogInfo(object message, bool line = true, bool timestamp = false)
+    {
+        Log(message, ConsoleColor.Blue, line, timestamp);
     }
 }

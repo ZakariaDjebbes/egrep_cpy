@@ -12,7 +12,6 @@ public static class DfaGenerator
     }
     private static int stateCounter = 0;
 
-
     public static Automata Generate(Automata ndfa)
     {
         Automata result = new Automata()
@@ -123,7 +122,7 @@ public static class DfaGenerator
             {
                 if (transition[0] == state)
                 {
-                    if (transition[2] == Program.EPSILON)
+                    if (transition[2] == RegExTree.EPSILON)
                     {
                         result.Add(transition[1]);
                         result.AddRange(GetFollowingEpsilonStates(ndfa, transition[1]));
@@ -159,7 +158,7 @@ public static class DfaGenerator
         {
             if (transition[0] == state)
             {
-                if (transition[2] == Program.EPSILON)
+                if (transition[2] == RegExTree.EPSILON)
                 {
                     result.Add(transition[1]);
                     result.AddRange(GetFollowingEpsilonStates(ndfa, transition[1]));
