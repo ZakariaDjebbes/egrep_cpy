@@ -9,8 +9,8 @@ public class Program
     public const int PROTECTION = 0xBADDAD;
     public const int PARENTHESEOUVRANT = 0x16641664;
     public const int PARENTHESEFERMANT = 0x51515151;
-    public const int DOT = 0xD07;
-    public const int EPSILON = 0x7E;
+    public const int ANY = 0x414E59;
+    public const int EPSILON = 0x52525252;
 
     private static string regEx = "a(b|c)*";
 

@@ -115,10 +115,12 @@ public struct Automata
         if (code == Program.CONCAT) return ".";
         if (code == Program.ETOILE) return "*";
         if (code == Program.ALTERN) return "|";
-        if (code == Program.DOT) return ".";
+        if (code == Program.ANY) return ".";
+        if (code == Program.EPSILON) return "ε";
+
         return Convert.ToString((char)code);
     }
 
     private bool IsDefaultTransition(int code)
-        => code != Program.CONCAT && code != Program.ETOILE && code != Program.ALTERN && code != Program.DOT && code != Program.EPSILON;
+        => code != Program.CONCAT && code != Program.ETOILE && code != Program.ALTERN && code != Program.ANY && code != Program.EPSILON;
 }

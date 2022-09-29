@@ -48,7 +48,9 @@ public class RegExTree
         if (Root == Program.CONCAT) return ".";
         if (Root == Program.ETOILE) return "*";
         if (Root == Program.ALTERN) return "|";
-        if (Root == Program.DOT) return ".";
+        if (Root == Program.ANY) return "any";
+        if (Root == Program.EPSILON) return "ε";
+
         return Convert.ToString((char)Root);
     }
 

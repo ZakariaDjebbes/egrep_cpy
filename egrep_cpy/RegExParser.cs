@@ -17,7 +17,7 @@ public static class RegExParser
 
     private static int CharToRoot(char c)
     {
-        if (c == '.') return Program.DOT;
+        if (c == '.') return Program.ANY;
         if (c == '*') return Program.ETOILE;
         if (c == '|') return Program.ALTERN;
         if (c == '(') return Program.PARENTHESEOUVRANT;
