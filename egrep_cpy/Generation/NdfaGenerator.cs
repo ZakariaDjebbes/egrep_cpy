@@ -33,37 +33,65 @@ public static class NdfaGenerator
                 switch (node.Root)
                 {
                     case RegExTree.CONCAT: // .
-                        var leftChild = intermediateAutomatas.Where(x => x.Key == node.SubTrees[0]).First();
-                        var rightChild = intermediateAutomatas.Where(x => x.Key == node.SubTrees[1]).First();
+                        {
 
-                        result = ComputeConcat(node, leftChild.Value, rightChild.Value);
+                            var left = intermediateAutomatas.Where(x => x.Key == node.SubTrees[0]).First();
+                            var right = intermediateAutomatas.Where(x => x.Key == node.SubTrees[1]).First();
 
-                        intermediateAutomatas.Remove(leftChild.Key);
-                        intermediateAutomatas.Remove(rightChild.Key);
+                            result = ComputeConcat(node, left.Value, right.Value);
 
-                        intermediateAutomatas.Add(node, result);
-                        break;
+                            intermediateAutomatas.Remove(left.Key);
+                            intermediateAutomatas.Remove(right.Key);
+
+                            intermediateAutomatas.Add(node, result);
+                            break;
+                        }
+
                     case RegExTree.REPEAT: // *
-                        var child = intermediateAutomatas.Where(x => x.Key == node.SubTrees[0]).First();
+                        {
+                            var child = intermediateAutomatas.Where(x => x.Key == node.SubTrees[0]).First();
 
-                        result = ComputeRepeat(node, child.Value);
+                            result = ComputeRepeat(node, child.Value);
 
-                        intermediateAutomatas.Remove(child.Key);
-                        intermediateAutomatas.Add(node, result);
-                        break;
+                            intermediateAutomatas.Remove(child.Key);
+                            intermediateAutomatas.Add(node, result);
+                            break;
+                        }
                     case RegExTree.ALTERN: // | 
-                        var left = intermediateAutomatas.Where(x => x.Key == node.SubTrees[0]).First();
-                        var right = intermediateAutomatas.Where(x => x.Key == node.SubTrees[1]).First();
+                        {
+                            var left = intermediateAutomatas.Where(x => x.Key == node.SubTrees[0]).First();
+                            var right = intermediateAutomatas.Where(x => x.Key == node.SubTrees[1]).First();
 
-                        result = ComputeAltern(node, left.Value, right.Value);
+                            result = ComputeAltern(node, left.Value, right.Value);
 
-                        intermediateAutomatas.Remove(left.Key);
-                        intermediateAutomatas.Remove(right.Key);
-                        intermediateAutomatas.Add(node, result);
-                        break;
+                            intermediateAutomatas.Remove(left.Key);
+                            intermediateAutomatas.Remove(right.Key);
+                            intermediateAutomatas.Add(node, result);
+                            break;
+                        }
                     case RegExTree.ANY: // any
                         intermediateAutomatas.Add(node, ComputeAny(node));
                         break;
+                    case RegExTree.ONE_OR_NONE: // ?
+                        {
+                            var child = intermediateAutomatas.Where(x => x.Key == node.SubTrees[0]).First();
+
+                            result = ComputeOneOrNone(node, child.Value);
+
+                            intermediateAutomatas.Remove(child.Key);
+                            intermediateAutomatas.Add(node, result);
+                            break;
+                        }
+                    case RegExTree.REPEAT_ONE: // +
+                        {
+                            var child = intermediateAutomatas.Where(x => x.Key == node.SubTrees[0]).First();
+
+                            result = ComputeRepeatOne(node, child.Value);
+
+                            intermediateAutomatas.Remove(child.Key);
+                            intermediateAutomatas.Add(node, result);
+                            break;
+                        }
                     default: // ANY CHARACTER EXCEPT ANY (.)
                         intermediateAutomatas.Add(node, ComputeDefaultNodes(node));
                         break;
@@ -73,10 +101,54 @@ public static class NdfaGenerator
 
         if (intermediateAutomatas.Count != 1)
         {
-            throw new Exception("Something went wrong");
+            throw new Exception("Generation of the non deterministic automata failed, two resulting automatas found which shouldn't be possible");
         }
 
         return intermediateAutomatas.First().Value;
+    }
+
+    private static Automata ComputeRepeatOne(RegExTree node, Automata childAutomata)
+    {
+        int newStart = StateCounter;
+        int newEnd = StateCounter;
+        int oldStart = childAutomata.InitialStates[0];
+        int oldEnd = childAutomata.FinalStates[0];
+
+        childAutomata.Transitions.AddRange(new List<List<int>>()
+        {
+            new List<int> { newStart, oldStart, RegExTree.EPSILON },
+            new List<int> { oldEnd, newEnd, RegExTree.EPSILON },
+            new List<int> { oldEnd, oldStart, RegExTree.EPSILON },
+        });
+
+        return new Automata
+        {
+            InitialStates = new List<int> { newStart },
+            FinalStates = new List<int> { newEnd },
+            Transitions = childAutomata.Transitions
+        };
+    }
+
+    private static Automata ComputeOneOrNone(RegExTree node, Automata childAutomata)
+    {
+        int newStart = StateCounter;
+        int newEnd = StateCounter;
+        int oldStart = childAutomata.InitialStates[0];
+        int oldEnd = childAutomata.FinalStates[0];
+
+        childAutomata.Transitions.AddRange(new List<List<int>>()
+        {
+            new List<int> { newStart, oldStart, RegExTree.EPSILON },
+            new List<int> { oldEnd, newEnd, RegExTree.EPSILON },
+            new List<int> { newStart, newEnd, RegExTree.EPSILON },
+        });
+
+        return new Automata
+        {
+            InitialStates = new List<int> { newStart },
+            FinalStates = new List<int> { newEnd },
+            Transitions = childAutomata.Transitions
+        };
     }
 
     private static Automata ComputeAny(RegExTree node)

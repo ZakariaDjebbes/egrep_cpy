@@ -6,6 +6,7 @@ using CommandLine;
 using Egrep_Cpy.Log;
 using Egrep_Cpy.Generation;
 using Egrep_Cpy.RegEx;
+using Egrep_Cpy.Error;
 
 namespace Egrep_Cpy;
 
@@ -41,11 +42,12 @@ public class Program
             if (opts.PrintDetails)
             {
                 Logger.Log($"\tResulting RegExTree :");
-                Logger.LogInfo($"\t\t{ret.ToString()}.");
+                Logger.LogInfo($"\t\t{ret.ToString()}");
                 Logger.Log("\tResulting Non Deterministic Automata : ");
                 Logger.LogInfo($"\t\t{ndfa.ToString()}");
                 Logger.Log("\tResulting Deterministic Automata : ");
                 Logger.LogInfo($"\t\t{dfa.ToString()}");
+                Console.WriteLine();
             }
 
             var matches = dfa.MatchBruteForce(text);
@@ -59,7 +61,7 @@ public class Program
 
                 for (int i = 0; i < text.Length; i++)
                 {
-                    if(matches.FindAll(x => x.Start <= i && x.End > i).Count != 0)
+                    if (matches.FindAll(x => x.Start <= i && x.End > i).Count != 0)
                     {
                         prettyText[i] = new PrettyString(text[i].ToString(), ConsoleColor.Green);
                     }
@@ -78,12 +80,22 @@ public class Program
                     Logger.LogSuccess($"\t{(opts.PrintLine ? $"Line {item.Line} " : "")}{(opts.PrintRange ? $"Column ({item.Start} - {item.End})" : "")} > {text.SubStr(item.Start, item.End - 1)}");
                 }
             }
-
-            Console.WriteLine();
         }
+        // catch (InvalidRegExException e)
+        // {
+        //     var msg = "  >> Invalid RegEx: ";
+
+        //     Logger.LogError("  >> ERROR: " + e.Message);
+        //     Logger.LogError(msg + regEx);
+        //     Logger.LogError($"{new StringBuilder().Append(' ', msg.Length + e.Failure)}^" );
+        // }
         catch (Exception e)
         {
             Logger.LogError("  >> ERROR: " + e.Message);
+        }
+        finally
+        {
+            Console.WriteLine();
         }
     }
 

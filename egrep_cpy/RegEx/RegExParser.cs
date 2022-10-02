@@ -1,3 +1,5 @@
+using Egrep_Cpy.Error;
+
 namespace Egrep_Cpy.RegEx;
 
 public static class RegExParser
@@ -22,6 +24,8 @@ public static class RegExParser
         if (c == '|') return RegExTree.ALTERN;
         if (c == '(') return RegExTree.OPENING_PARENTHESIS;
         if (c == ')') return RegExTree.CLOSING_PARENTHESIS;
+        if (c == '?') return RegExTree.ONE_OR_NONE;
+        if (c == '+') return RegExTree.REPEAT_ONE;
 
         return (int)c;
     }
@@ -29,6 +33,8 @@ public static class RegExParser
     private static RegExTree Parse(List<RegExTree> result)
     {
         while (ContainParenthesis(result)) result = ProcessParenthesis(result);
+        while (ContainOneOrNone(result)) result = ProcessOneOrNone(result);
+        while (ContainRepeatOne(result)) result = ProcessRepeatOne(result);
         while (ContainRepeat(result)) result = ProcessRepeat(result);
         while (ContainConcat(result)) result = ProcessConcat(result);
         while (ContainAltern(result)) result = ProcessAltern(result);
@@ -47,6 +53,7 @@ public static class RegExParser
                 return true;
             }
         }
+
         return false;
     }
 
@@ -94,7 +101,99 @@ public static class RegExParser
                 result.Add(t);
             }
         }
-        if (!found) throw new Exception();
+
+        if (!found)
+        {
+            throw new InvalidRegExException("Couldn't remove the parenthesis from the regex, are you missing a parenthesis?", 0);
+        }
+
+        return result;
+    }
+
+    private static bool ContainRepeatOne(List<RegExTree> trees)
+    {
+        foreach (RegExTree t in trees)
+        {
+            if (t.Root == RegExTree.REPEAT_ONE && !t.SubTrees.Any())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static List<RegExTree> ProcessRepeatOne(List<RegExTree> trees)
+    {
+        List<RegExTree> result = new List<RegExTree>();
+        bool found = false;
+
+        foreach (RegExTree t in trees)
+        {
+            if (!found && t.Root == RegExTree.REPEAT_ONE && !t.SubTrees.Any())
+            {
+                if (!result.Any())
+                {
+                    throw new InvalidRegExException("Found a Repeat One (+) without any character", 0);
+                }
+
+                RegExTree last = result[result.Count - 1];
+                List<RegExTree> subTrees = new List<RegExTree>();
+
+                found = true;
+                result.RemoveAt(result.Count - 1);
+                subTrees.Add(last);
+                result.Add(new RegExTree(RegExTree.REPEAT_ONE, subTrees));
+            }
+            else
+            {
+                result.Add(t);
+            }
+        }
+
+        return result;
+    }
+    private static bool ContainOneOrNone(List<RegExTree> trees)
+    {
+        foreach (RegExTree t in trees)
+        {
+            if (t.Root == RegExTree.ONE_OR_NONE && !t.SubTrees.Any())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static List<RegExTree> ProcessOneOrNone(List<RegExTree> trees)
+    {
+        List<RegExTree> result = new List<RegExTree>();
+        bool found = false;
+
+        foreach (RegExTree t in trees)
+        {
+            if (!found && t.Root == RegExTree.ONE_OR_NONE && !t.SubTrees.Any())
+            {
+                if (!result.Any())
+                {
+                    throw new InvalidRegExException("Found a Repeat One (+) without any character", 0);
+                }
+
+                RegExTree last = result[result.Count - 1];
+                List<RegExTree> subTrees = new List<RegExTree>();
+
+                found = true;
+                result.RemoveAt(result.Count - 1);
+                subTrees.Add(last);
+                result.Add(new RegExTree(RegExTree.ONE_OR_NONE, subTrees));
+            }
+            else
+            {
+                result.Add(t);
+            }
+        }
+
         return result;
     }
 
@@ -122,7 +221,7 @@ public static class RegExParser
             {
                 if (!result.Any())
                 {
-                    throw new Exception();
+                    throw new InvalidRegExException("Found a Repeat (*) without any character", 0);
                 }
 
                 RegExTree last = result[result.Count - 1];
@@ -138,9 +237,10 @@ public static class RegExParser
                 result.Add(t);
             }
         }
+
         return result;
     }
-    
+
     private static bool ContainConcat(List<RegExTree> trees)
     {
         bool firstFound = false;
@@ -163,6 +263,7 @@ public static class RegExParser
                 }
             }
         }
+
         return false;
     }
 
@@ -226,7 +327,7 @@ public static class RegExParser
     {
         List<RegExTree> result = new List<RegExTree>();
         bool found = false;
-        RegExTree? gauche = null;
+        RegExTree? left = null;
         bool done = false;
 
         foreach (RegExTree t in trees)
@@ -235,18 +336,18 @@ public static class RegExParser
             {
                 if (!result.Any())
                 {
-                    throw new Exception();
+                    throw new InvalidRegExException("Found an altern (|) without a left side", 0);
                 }
 
                 found = true;
-                gauche = result[result.Count - 1];
+                left = result[result.Count - 1];
                 result.RemoveAt(result.Count - 1);
                 continue;
             }
 
             if (found && !done)
             {
-                if (gauche == null)
+                if (left == null)
                 {
                     throw new Exception();
                 }
@@ -254,7 +355,7 @@ public static class RegExParser
                 List<RegExTree> subTrees = new List<RegExTree>();
 
                 done = true;
-                subTrees.Add(gauche);
+                subTrees.Add(left);
                 subTrees.Add(t);
                 result.Add(new RegExTree(RegExTree.ALTERN, subTrees));
             }

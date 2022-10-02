@@ -10,6 +10,9 @@ public class RegExTree
     public const int CLOSING_PARENTHESIS = 0x51515151;
     public const int ANY = 0x414E59;
     public const int EPSILON = 0x52525252;
+    public const int ONE_OR_NONE = 0x1E7011E;
+    public const int ESCAPE = 0x45534341;
+    public const int REPEAT_ONE = 0x4F505F42;
 
     public int Root { get; set; }
     public List<RegExTree> SubTrees { get; set; }
@@ -59,6 +62,8 @@ public class RegExTree
         if (Root == ALTERN) return "|";
         if (Root == ANY) return "any";
         if (Root == EPSILON) return "ε";
+        if (Root == ONE_OR_NONE) return "?";
+        if (Root == REPEAT_ONE) return "+";
 
         return Convert.ToString((char)Root);
     }
