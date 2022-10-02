@@ -42,4 +42,16 @@ public static class Logger
     {
         Log(message, ConsoleColor.Blue, line, timestamp);
     }
+
+    public static void PrettyLog(params PrettyString[] messages)
+    {
+        var lastColor = Console.ForegroundColor;
+        foreach (var item in messages)
+        {
+            Log(item.Text, item.Color, false);
+        }
+
+        Console.ForegroundColor = lastColor;
+        Console.WriteLine();
+    }
 }

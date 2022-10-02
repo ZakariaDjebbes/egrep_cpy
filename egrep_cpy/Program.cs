@@ -33,7 +33,7 @@ public class Program
             regEx = opts.RegEx;
             text = ToASCII(File.ReadAllText(opts.File));
 
-            Logger.Log($"Finding matches of RegEx [{regEx}] on text [{opts.File}]");
+            Logger.Log($"Finding matches of RegEx [{regEx}] on text [{opts.File}]\n");
             RegExTree ret = RegExParser.Parse(regEx);
             Automata ndfa = NdfaGenerator.Generate(ret);
             Automata dfa = DfaGenerator.Generate(ndfa);
@@ -50,12 +50,35 @@ public class Program
 
             var matches = dfa.MatchBruteForce(text);
 
-            Logger.LogSuccess($"Found {matches.Count} matches : ");
+            if (opts.PrintCount)
+                Logger.LogSuccess($"Found {matches.Count} matches.\n");
 
-            foreach (var item in matches)
+            if (opts.PrettyPrint)
             {
-                Logger.LogSuccess($"\t{(opts.PrintLine ? $"Line 1 - " : "")}{(opts.PrintRange ? $"Column ({item.Item1} - {item.Item2})" : "")} > {text.SubStr(item.Item1, item.Item2 - 1)}");
+                var prettyText = new PrettyString[text.Length];
+
+                for (int i = 0; i < text.Length; i++)
+                {
+                    if(matches.Find(x => x.Item1 <= i && x.Item2 > i) != null)
+                    {
+                        prettyText[i] = new PrettyString(text[i].ToString(), ConsoleColor.Green);
+                    }
+                    else
+                    {
+                        prettyText[i] = new PrettyString(text[i].ToString(), ConsoleColor.White);
+                    }
+                }
+
+                Logger.PrettyLog(prettyText);
             }
+            else
+            {
+                foreach (var item in matches)
+                {
+                    Logger.LogSuccess($"\t{(opts.PrintLine ? $"Line 1 - " : "")}{(opts.PrintRange ? $"Column ({item.Item1} - {item.Item2})" : "")} > {text.SubStr(item.Item1, item.Item2 - 1)}");
+                }
+            }
+
         }
         catch (Exception e)
         {
