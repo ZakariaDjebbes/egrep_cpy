@@ -59,7 +59,7 @@ public class Program
 
                 for (int i = 0; i < text.Length; i++)
                 {
-                    if(matches.Find(x => x.Item1 <= i && x.Item2 > i) != null)
+                    if(matches.FindAll(x => x.Start <= i && x.End > i).Count != 0)
                     {
                         prettyText[i] = new PrettyString(text[i].ToString(), ConsoleColor.Green);
                     }
@@ -75,10 +75,11 @@ public class Program
             {
                 foreach (var item in matches)
                 {
-                    Logger.LogSuccess($"\t{(opts.PrintLine ? $"Line 1 - " : "")}{(opts.PrintRange ? $"Column ({item.Item1} - {item.Item2})" : "")} > {text.SubStr(item.Item1, item.Item2 - 1)}");
+                    Logger.LogSuccess($"\t{(opts.PrintLine ? $"Line {item.Line} " : "")}{(opts.PrintRange ? $"Column ({item.Start} - {item.End})" : "")} > {text.SubStr(item.Start, item.End - 1)}");
                 }
             }
 
+            Console.WriteLine();
         }
         catch (Exception e)
         {

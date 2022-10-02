@@ -99,16 +99,20 @@ public struct Automata
         return res;
     }
 
-    public List<Tuple<int, int>> MatchBruteForce(string text)
+    public List<MatchResult> MatchBruteForce(string text)
     {
-        var res = new List<Tuple<int, int>>();
+        var res = new List<MatchResult>();
         var initialState = initialStates[0];
+        var currentLine = 1;
 
         for (int start = 0; start < text.Length; start++)
         {
             var ends = MatchFrom(text, start, initialState);
 
-            res.AddRange(ends.Select(x =>  new Tuple<int, int>(start, x)));
+            res.AddRange(ends.Select(x =>  new MatchResult(currentLine, start, x)));
+
+            if(text[start] == '\n')
+                currentLine++;
         }
 
         return res;
