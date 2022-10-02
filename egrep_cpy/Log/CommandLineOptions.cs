@@ -19,6 +19,9 @@ public class CommandLineOptions
     [Option('n', "number", Required = false, Default = false, HelpText = "Shows the total number of matches found.")]
     public bool PrintCount { get; set; }
 
+    [Option('w', "watch", Required = false, Default = false, HelpText = "Shows the time elapsed for parsing and matching the RegEx.")]
+    public bool PrintTime { get; set; }
+
     //Line by line options
     [Option('c', "col-number", SetName = "Line by line", Required = false, Default = false, HelpText = "Prefix each line of output with the 2-based (start and end) colmun number within its input file.")]
     public bool PrintRange { get; set; }
