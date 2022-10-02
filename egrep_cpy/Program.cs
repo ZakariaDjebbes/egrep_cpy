@@ -1,72 +1,65 @@
 ﻿#nullable disable
-using System.Text;
+#define RELEASE
 
-namespace EGREP_CPY;
+using System.Text;
+using CommandLine;
+using Egrep_Cpy.Log;
+using Egrep_Cpy.Generation;
+using Egrep_Cpy.RegEx;
+
+namespace Egrep_Cpy;
 
 public class Program
 {
     public static void Main(String[] args)
     {
-        var regEx = "e.";
-        var text = ToASCII("Je suis d'accord avec votre avis cher monsieur le president. Pourriez-vous me donner votre avis sur le sujet ?");
 
-        if (args.Length != 0)
-        {
-            regEx = args[0];
-        }
 
-        Logger.LogWarning($"  >> Parsing RegEx {regEx}");
-        Logger.LogSuccess("     >> ASCII codes: [" + (int)regEx[0], false);
+        Parser.Default.ParseArguments<CommandLineOptions>(args)
+            .WithParsed(opts =>
+            {
+                Run(opts);
+            });
 
-        for (int i = 1; i < regEx.Length; i++)
-        {
-            Logger.LogSuccess("," + (int)regEx[i], false);
-        }
 
-        Logger.LogSuccess("].");
+    }
+
+    private static void Run(CommandLineOptions opts)
+    {
+        string text = null, regEx = null;
 
         try
         {
-            // Création du regex tree
+            regEx = opts.RegEx;
+            text = ToASCII(File.ReadAllText(opts.File));
+
+            Logger.Log($"Finding matches of RegEx [{regEx}] on text [{opts.File}]");
             RegExTree ret = RegExParser.Parse(regEx);
-            Logger.LogSuccess("     >> Tree result: " + ret.ToString() + ".");
-            Logger.LogWarning("  >> Parsing over.");
-            Logger.LogWarning("  >> Creating the Non Deterministic Finite Automaton (NFA) from the syntax tree.");
-
-            // Création de l'automate non déterministe
             Automata ndfa = NdfaGenerator.Generate(ret);
-            Logger.LogSuccess("    >> Resulting Automata : ");
-            Logger.LogSuccess("    >> " + ndfa.ToString());
-            Logger.LogWarning("  >> NDFA Generation over.");
-            Logger.LogWarning("  >> Creating the Deterministic Finite Automaton (DFA) from the previously generated NDFA.");
-
-            // Génération de l'automate déterministe
             Automata dfa = DfaGenerator.Generate(ndfa);
-            Logger.LogSuccess("    >> Resulting Automata : ");
-            Logger.LogSuccess("    >> " + dfa.ToString());
-            Logger.LogWarning("  >> DFA Generation over.");
-            Logger.LogWarning("  >> ...");
 
-            // Recherche des matches
-
-            Logger.LogWarning(message: "  >> Searching for matches in the text (Converted to ASCII) : " + text, timestamp: true);
+            if (opts.PrintDetails)
+            {
+                Logger.Log($"\tResulting RegExTree :");
+                Logger.LogInfo($"\t\t{ret.ToString()}.");
+                Logger.Log("\tResulting Non Deterministic Automata : ");
+                Logger.LogInfo($"\t\t{ndfa.ToString()}");
+                Logger.Log("\tResulting Deterministic Automata : ");
+                Logger.LogInfo($"\t\t{dfa.ToString()}");
+            }
 
             var matches = dfa.MatchBruteForce(text);
 
-            Logger.LogSuccess(message: $"    >> Found {matches.Count} matches : ", timestamp: true);
+            Logger.LogSuccess($"Found {matches.Count} matches : ");
 
-            foreach (var item in matches.Keys)
+            foreach (var item in matches)
             {
-                Logger.LogSuccess($"    >> ({item.X} - {item.Y}) : {matches[item]}");
+                Logger.LogSuccess($"\t{(opts.PrintLine ? $"Line 1 - " : "")}{(opts.PrintRange ? $"Column ({item.Item1} - {item.Item2})" : "")} > {text.SubStr(item.Item1, item.Item2 - 1)}");
             }
-
-            Logger.LogWarning("  >> Exiting...");
         }
         catch (Exception e)
         {
             Logger.LogError("  >> ERROR: " + e.Message);
-            Logger.LogError($"  >> Type: {e.GetType()}");
-            Logger.LogError("  >> TRACE: " + e.StackTrace);
         }
     }
 

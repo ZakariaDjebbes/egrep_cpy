@@ -1,4 +1,6 @@
-namespace EGREP_CPY;
+using Egrep_Cpy.RegEx;
+
+namespace Egrep_Cpy.Generation;
 
 public static class DfaGenerator
 {

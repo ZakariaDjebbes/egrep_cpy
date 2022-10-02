@@ -1,5 +1,6 @@
-using System.Numerics;
-namespace EGREP_CPY;
+using Egrep_Cpy.RegEx;
+
+namespace Egrep_Cpy.Generation;
 
 public struct Automata
 {
@@ -75,57 +76,39 @@ public struct Automata
         return uniqueTransitions;
     }
 
-    private int TryChar(char c, int from)
+    private List<int> MatchFrom(string text, int startChar, int startState)
     {
-        List<int> transition = Transitions.Find(t => t[0] == from && t[2] == c)
-                               ?? new List<int>();
-
-
-        var count = Transitions.FindAll(t => t[0] == from && t[2] == c).Count;
-
-        if (count > 1) // Should never happen to be asked about
-            throw new InvalidDataException("There is more than one transition with the same input");
-
-        if (transition.Count == 0)
+        var res = new List<int>();
+    
+        if(startChar < text.Length)
         {
-            return -1;
+            var nextState = transitions
+                .Where(x => x[0] == startState && x[2] == text[startChar])
+                .Select(x => x[1])
+                .FirstOrDefault(-1);
+
+            if(nextState != -1)
+            {
+                res = MatchFrom(text, startChar + 1, nextState);
+            }
         }
-        else
-        {
-            return transition[1];
-        }
+
+        if(IsFinalState(startState))
+            res.Add(startChar);
+
+        return res;
     }
 
-    public Dictionary<Vector2, string> MatchBruteForce(string text)
+    public List<Tuple<int, int>> MatchBruteForce(string text)
     {
-        var res = new Dictionary<Vector2, string>();
+        var res = new List<Tuple<int, int>>();
         var initialState = initialStates[0];
-        var matchStart = -1;
 
-        for (int i = 0; i < text.Length; i++)
+        for (int start = 0; start < text.Length; start++)
         {
-            var c = text[i];
-            var currentState = TryChar(c, initialState);
+            var ends = MatchFrom(text, start, initialState);
 
-            if (currentState != -1)
-            {
-                initialState = currentState;
-
-                if (matchStart == -1)
-                    matchStart = i;
-
-                if (IsFinalState(currentState))
-                {
-                    res.Add(new Vector2(matchStart, i), text.SubStr(matchStart, i));
-                    initialState = initialStates[0];
-                    matchStart = -1;
-                }
-            }
-            else 
-            {
-                initialState = initialStates[0];
-                matchStart = -1;
-            }
+            res.AddRange(ends.Select(x =>  new Tuple<int, int>(start, x)));
         }
 
         return res;
@@ -133,7 +116,7 @@ public struct Automata
 
     public bool IsFinalState(int state) => FinalStates.Contains(state);
 
-    public bool IsInitialStates(int state) => InitialStates.Contains(state);
+    public bool IsInitialState(int state) => InitialStates.Contains(state);
 
     public override string ToString()
     {

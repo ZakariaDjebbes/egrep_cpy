@@ -1,7 +1,11 @@
-namespace EGREP_CPY;
+using Egrep_Cpy.RegEx;
+
+namespace Egrep_Cpy.Generation;
 
 public static class NdfaGenerator
 {
+    private const int UPPER_ASCII_BOUND = 128; // ASCII NON EXTENDED
+    private const int LOWER_ASCII_BOUND = 0;
     private static int StateCounter
     {
         get
@@ -58,7 +62,7 @@ public static class NdfaGenerator
                         intermediateAutomatas.Add(node, result);
                         break;
                     case RegExTree.ANY: // any
-                        intermediateAutomatas.Add(node, ComputeAny(node));                
+                        intermediateAutomatas.Add(node, ComputeAny(node));
                         break;
                     default: // ANY CHARACTER EXCEPT ANY (.)
                         intermediateAutomatas.Add(node, ComputeDefaultNodes(node));
@@ -75,9 +79,6 @@ public static class NdfaGenerator
         return intermediateAutomatas.First().Value;
     }
 
-    private const int UPPER_ASCII_BOUND = 255;
-    private const int LOWER_ASCII_BOUND = 0;
-
     private static Automata ComputeAny(RegExTree node)
     {
         var initialState = StateCounter;
@@ -92,9 +93,10 @@ public static class NdfaGenerator
 
         for (int i = LOWER_ASCII_BOUND; i < UPPER_ASCII_BOUND; i++)
         {
-            result.Transitions.Add(new List<int> { initialState, finalState, i });
+            if ((char)i != '\n') //????
+                result.Transitions.Add(new List<int> { initialState, finalState, i });
         }
-        
+
         return result;
     }
 

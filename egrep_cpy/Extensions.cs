@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace EGREP_CPY;
+namespace Egrep_Cpy;
 
 public static class Extensions
 {

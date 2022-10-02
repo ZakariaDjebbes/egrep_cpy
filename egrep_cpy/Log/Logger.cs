@@ -1,4 +1,4 @@
-namespace EGREP_CPY;
+namespace Egrep_Cpy.Log;
 
 public static class Logger
 {
