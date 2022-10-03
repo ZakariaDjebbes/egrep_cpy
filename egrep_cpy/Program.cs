@@ -4,7 +4,7 @@
 using System.Text;
 using CommandLine;
 using Egrep_Cpy.Log;
-using Egrep_Cpy.Generation;
+using Egrep_Cpy.Automata;
 using Egrep_Cpy.RegEx;
 
 namespace Egrep_Cpy;
@@ -36,8 +36,8 @@ public class Program
             Logger.Log($"Finding matches of RegEx [{regEx}] on text [{opts.File}]\n");
             var watch = System.Diagnostics.Stopwatch.StartNew();
             RegExTree ret = RegExParser.Parse(regEx);
-            Automata ndfa = NdfaGenerator.Generate(ret);
-            Automata dfa = DfaGenerator.Generate(ndfa);
+            Automata.Automata ndfa = NdfaGenerator.Generate(ret);
+            Automata.Automata dfa = DfaGenerator.Generate(ndfa);
             var matches = dfa.MatchBruteForce(text);
             watch.Stop();
 

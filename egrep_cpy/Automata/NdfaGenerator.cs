@@ -1,6 +1,6 @@
 using Egrep_Cpy.RegEx;
 
-namespace Egrep_Cpy.Generation;
+namespace Egrep_Cpy.Automata;
 
 public static class NdfaGenerator
 {
