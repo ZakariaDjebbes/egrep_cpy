@@ -11,14 +11,32 @@ public static class RegExParser
 
         for (int i = 0; i < regEx.Length; i++)
         {
-            result.Add(new RegExTree(CharToRoot(regEx[i]), new List<RegExTree>()));
+            if (regEx[i] == '\\')
+            {
+                if (i + 1 < regEx.Length)
+                {
+                    result.Add(new RegExTree(CharToRoot(regEx[i + 1], false), new List<RegExTree>()));
+                    i++;
+                }
+                else
+                {
+                    throw new InvalidRegExException("Invalid escape sequence, are you escaping nothing?", i);
+                }
+            }
+            else
+            {
+                result.Add(new RegExTree(CharToRoot(regEx[i]), new List<RegExTree>()));
+            }
         }
 
         return Parse(result);
     }
 
-    private static int CharToRoot(char c)
+    private static int CharToRoot(char c, bool isRegExOperation = true)
     {
+        if (!isRegExOperation)
+            return (int)c;
+
         if (c == '.') return RegExTree.ANY;
         if (c == '*') return RegExTree.REPEAT;
         if (c == '|') return RegExTree.ALTERN;
