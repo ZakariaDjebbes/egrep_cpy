@@ -1,10 +1,10 @@
-﻿#nullable disable
+﻿#nullable disable //null //null another time null
 #define RELEASE
 
 using System.Text;
 using CommandLine;
 using Egrep_Cpy.Log;
-using Egrep_Cpy.Automata;
+using Egrep_Cpy.Automaton;
 using Egrep_Cpy.RegEx;
 using Egrep_Cpy.Algorithms;
 
@@ -25,16 +25,68 @@ public class Program
     {
         var text = ToASCII(File.ReadAllText(opts.File));
         var regEx = opts.RegEx;
-        var useKMP = true;
+        List<MatchResult> matches = new();
+        var useKMP = RegExParser.ShouldUseKMP(regEx);
 
         try
         {
             Logger.Log($"Finding matches of RegEx [{regEx}] on text [{opts.File}]\n");
 
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             if (useKMP)
-                UseKMP(opts, text, regEx);
+                UseKMP(opts, text, regEx, ref matches);
             else
-                UseAutomata(opts, text, regEx);
+                UseAutomata(opts, text, regEx, ref matches);
+
+            matches = matches.Where(x => (matches.Where(y => y.Line == x.Line && y.Start == x.Start).Max(x => x.End) == x.End) && matches.Where(y => y.Line == x.Line && y.End == x.End).Min(x => x.Start) == x.Start).ToList();
+            watch.Stop();
+
+
+            if (opts.PrintTime)
+            {
+                Logger.PrettyLog(new List<PrettyString> {
+                    new PrettyString($"\nTime elapsed for parsing and matching the regex : "),
+                    new PrettyString($"{watch.Elapsed.Minutes}m {watch.Elapsed.Seconds}s {watch.Elapsed.Milliseconds}ms \n", ConsoleColor.Blue)});
+            }
+
+            if (opts.PrintCount)
+                Logger.LogSuccess($"Found {matches.Count} matche(s).\n");
+
+            var lines = text.Split('\n');
+            var prettyText = new List<PrettyString>();
+
+            if (opts.PrettyPrint)
+            {
+                for (int l = 0; l < lines.Length; l++)
+                {
+                    var prettyString = new PrettyString($"{lines[l]}");
+                    var lineMatches = matches.Where(x => x.Line == l);
+
+                    foreach (var match in lineMatches)
+                    {
+                        for (int i = match.Start; i < match.End; i++)
+                        {
+                            prettyString.Colors[i] = ConsoleColor.Green;
+                        }
+                    }
+
+                    prettyText.Add(prettyString);
+                }
+
+                Logger.PrettyLog(prettyText);
+            }
+            else
+            {
+                foreach (var match in matches)
+                {
+                    var line = lines[match.Line];
+                    // {(item.Start == item.End ? $"{line.SubStr(item.Start, item.End)}" : $"{line.SubStr(item.Start, item.End - 1)}")}
+                    Logger.Log($"Line {match.Line + 1} Column ({match.Start} - {match.End}) : {line}");
+
+                }
+
+                Logger.PrettyLog(prettyText);
+            }
         }
         // catch (InvalidRegExException e)
         // {
@@ -56,20 +108,10 @@ public class Program
         }
     }
 
-    private static void UseKMP(CommandLineOptions opts, string text, string regEx)
+    private static void UseKMP(CommandLineOptions opts, string text, string regEx, ref List<MatchResult> matches)
     {
-        var watch = System.Diagnostics.Stopwatch.StartNew();
         var kmp = new KnuthMorrisPratt(regEx);
-        var matches = kmp.Search(text);
-        watch.Stop();
-
-        if (opts.PrintTime)
-        {
-            Logger.PrettyLog(new PrettyString($"\nTime elapsed for parsing and matching the regex : ",
-                                                ConsoleColor.White),
-                            new PrettyString($"{watch.Elapsed.Minutes}m {watch.Elapsed.Seconds}s {watch.Elapsed.Milliseconds}ms \n",
-                                                ConsoleColor.Blue));
-        }
+        matches = kmp.Search(text);
 
         if (opts.PrintDetails)
         {
@@ -80,62 +122,14 @@ public class Program
             }
             Console.WriteLine();
         }
-
-        if (opts.PrintCount)
-            Logger.LogSuccess($"Found {matches.Count} matches.\n");
-
-        if (opts.PrettyPrint)
-        {
-            var prettyText = new PrettyString[text.Length];
-
-            for (int i = 0; i < text.Length; i++)
-            {
-                var match = matches[i];
-                var start = match;
-                var end = match + regEx.Length;
-
-                if (matches.FindAll(x => (start <= i && end > i) || (start == i && end == i)).Count != 0)
-                {
-                    prettyText[i] = new PrettyString(text[i].ToString(), ConsoleColor.Green);
-                }
-                else
-                {
-                    prettyText[i] = new PrettyString(text[i].ToString(), ConsoleColor.White);
-                }
-            }
-
-            Logger.PrettyLog(prettyText);
-        }
-        else
-        {
-            for (int i = 0; i < matches.Count; i++)
-            {
-                var match = matches[i];
-                var start = match;
-                var end = match + regEx.Length;
-                var matchText = text.Substring(start, end - start);
-
-                Logger.LogSuccess($"Match {i + 1} : {matchText}");
-            }
-        }
     }
 
-    private static void UseAutomata(CommandLineOptions opts, string text, string regEx)
+    private static void UseAutomata(CommandLineOptions opts, string text, string regEx, ref List<MatchResult> matches)
     {
-        var watch = System.Diagnostics.Stopwatch.StartNew();
         RegExTree ret = RegExParser.Parse(regEx);
-        Automata.Automata ndfa = NdfaGenerator.Generate(ret);
-        Automata.Automata dfa = DfaGenerator.Generate(ndfa);
-        var matches = dfa.MatchBruteForce(text);
-        watch.Stop();
-
-        if (opts.PrintTime)
-        {
-            Logger.PrettyLog(new PrettyString($"\nTime elapsed for parsing and matching the regex : ",
-                                                ConsoleColor.White),
-                            new PrettyString($"{watch.Elapsed.Minutes}m {watch.Elapsed.Seconds}s {watch.Elapsed.Milliseconds}ms \n",
-                                                ConsoleColor.Blue));
-        }
+        Automata ndfa = NdfaGenerator.Generate(ret);
+        Automata dfa = DfaGenerator.Generate(ndfa);
+        matches = dfa.Match(text);
 
         if (opts.PrintDetails)
         {
@@ -146,36 +140,6 @@ public class Program
             Logger.Log("\tResulting Deterministic Automata : ");
             Logger.LogInfo($"\t\t{dfa.ToString()}");
             Console.WriteLine();
-        }
-
-
-        if (opts.PrintCount)
-            Logger.LogSuccess($"Found {matches.Count} matches.\n");
-
-        if (opts.PrettyPrint)
-        {
-            var prettyText = new PrettyString[text.Length];
-
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (matches.FindAll(x => (x.Start <= i && x.End > i) || (x.Start == i && x.End == i)).Count != 0)
-                {
-                    prettyText[i] = new PrettyString(text[i].ToString(), ConsoleColor.Green);
-                }
-                else
-                {
-                    prettyText[i] = new PrettyString(text[i].ToString(), ConsoleColor.White);
-                }
-            }
-
-            Logger.PrettyLog(prettyText);
-        }
-        else
-        {
-            foreach (var item in matches)
-            {
-                Logger.LogSuccess($"\t{(opts.PrintLine ? $"Line {item.Line} " : "")}{(opts.PrintRange ? $"Column ({item.Start} - {item.End})" : "")} > {(item.Start == item.End ? $"{text.SubStr(item.Start, item.End)}" : $"{text.SubStr(item.Start, item.End - 1)}")}");
-            }
         }
     }
 

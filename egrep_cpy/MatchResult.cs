@@ -1,4 +1,4 @@
-namespace Egrep_Cpy.Automata;
+namespace Egrep_Cpy;
 
 public struct MatchResult 
 {

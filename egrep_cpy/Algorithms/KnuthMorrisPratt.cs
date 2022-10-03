@@ -1,4 +1,4 @@
-using Egrep_Cpy.Log;
+using Egrep_Cpy.Automaton;
 
 namespace Egrep_Cpy.Algorithms;
 
@@ -26,32 +26,40 @@ public class KnuthMorrisPratt
         carryOver = GetCarryOver(_pattern);
     }
 
-    public List<int> Search(string text)
+    public List<MatchResult> Search(string input)
     {
-        var matches = new List<int>();
-        var j = 0;
-        var k = 0;
+        var matches = new List<MatchResult>();
 
-        while (j < text.Length)
+        var texts = input.Split('\n');
+
+        for (int line = 0; line < texts.Length; line++)
         {
-            if (text[j] == pattern[k])
-            {
-                j++;
-                k++;
+            var text = texts[line];
+            var j = 0;
+            var k = 0;
 
-                if (k == pattern.Length)
-                {
-                    matches.Add(j - k);
-                    k = carryOver[k - 1];
-                }
-            }
-            else
+            while (j < text.Length)
             {
-                k = carryOver[k];
-                if (k < 0)
+                if (text[j] == pattern[k])
                 {
                     j++;
                     k++;
+
+                    if (k == pattern.Length)
+                    {
+                        var start = j - k;
+                        matches.Add(new MatchResult(line, start, start + pattern.Length));
+                        k = carryOver[k - 1];
+                    }
+                }
+                else
+                {
+                    k = carryOver[k];
+                    if (k < 0)
+                    {
+                        j++;
+                        k++;
+                    }
                 }
             }
         }

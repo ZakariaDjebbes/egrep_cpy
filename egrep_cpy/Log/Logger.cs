@@ -43,15 +43,33 @@ public static class Logger
         Log(message, ConsoleColor.Blue, line, timestamp);
     }
 
-    public static void PrettyLog(params PrettyString[] messages)
+    public static void PrettyLog(PrettyString message, bool line = true)
     {
         var lastColor = Console.ForegroundColor;
-        foreach (var item in messages)
+
+        for(int i = 0; i < message.Text.Length; i++)
         {
-            Log(item.Text, item.Color, false);
+            var c = message.Text[i];
+            Logger.Log(c, message.Colors[i], false, false);
         }
 
         Console.ForegroundColor = lastColor;
-        Console.WriteLine();
+
+        if(line)
+        {
+            Console.WriteLine();
+        }
+    }
+
+    public static void PrettyLog(List<PrettyString> messages, bool line = true)
+    {
+        var lastColor = Console.ForegroundColor;
+
+        foreach (var message in messages)
+        {
+            PrettyLog(message, line);
+        }
+
+        Console.ForegroundColor = lastColor;
     }
 }

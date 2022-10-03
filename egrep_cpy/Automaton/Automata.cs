@@ -1,6 +1,6 @@
 using Egrep_Cpy.RegEx;
 
-namespace Egrep_Cpy.Automata;
+namespace Egrep_Cpy.Automaton;
 
 public struct Automata
 {
@@ -79,40 +79,42 @@ public struct Automata
     private List<int> MatchFrom(string text, int startChar, int startState)
     {
         var res = new List<int>();
-    
-        if(startChar < text.Length)
+
+        if (startChar < text.Length)
         {
             var nextState = transitions
                 .Where(x => x[0] == startState && x[2] == text[startChar])
                 .Select(x => x[1])
                 .FirstOrDefault(-1);
 
-            if(nextState != -1)
+            if (nextState != -1)
             {
                 res = MatchFrom(text, startChar + 1, nextState);
             }
         }
 
-        if(IsFinalState(startState))
+        if (IsFinalState(startState))
             res.Add(startChar);
 
         return res;
     }
 
-    public List<MatchResult> MatchBruteForce(string text)
+    public List<MatchResult> Match(string input)
     {
+        var texts = input.Split('\n');
         var res = new List<MatchResult>();
-        var initialState = initialStates[0];
-        var currentLine = 1;
 
-        for (int start = 0; start < text.Length; start++)
+        for (int line = 0; line < texts.Length; line++)
         {
-            var ends = MatchFrom(text, start, initialState);
+            var text = texts[line];
+            var initialState = initialStates[0];
 
-            res.AddRange(ends.Select(x =>  new MatchResult(currentLine, start, x)));
+            for (int start = 0; start < text.Length; start++)
+            {
+                var ends = MatchFrom(text, start, initialState);
 
-            if(text[start] == '\n')
-                currentLine++;
+                res.AddRange(ends.Select(x => new MatchResult(line, start, x)));
+            }
         }
 
         return res;

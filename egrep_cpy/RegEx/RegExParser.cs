@@ -5,7 +5,7 @@ namespace Egrep_Cpy.RegEx;
 public static class RegExParser
 {
     //FROM REGEX TO SYNTAX TREE
-    public static RegExTree Parse(String regEx)
+    public static RegExTree Parse(string regEx)
     {
         List<RegExTree> result = new List<RegExTree>();
 
@@ -30,6 +30,26 @@ public static class RegExParser
         }
 
         return Parse(result);
+    }
+
+    public static bool ShouldUseKMP(string regEx)
+    {
+        bool isRegexOperation = true;
+
+        foreach (var c in regEx)
+        {
+            if      (c == '.' && isRegexOperation) return false;
+            else if (c == '*' && isRegexOperation) return false;
+            else if (c == '|' && isRegexOperation) return false;
+            else if (c == '(' && isRegexOperation) return false;
+            else if (c == ')' && isRegexOperation) return false;
+            else if (c == '?' && isRegexOperation) return false;
+            else if (c == '+' && isRegexOperation) return false;
+            else if (c == '\\' && isRegexOperation) isRegexOperation = false;
+            else isRegexOperation = true;
+        }
+
+        return true;
     }
 
     private static int CharToRoot(char c, bool isRegExOperation = true)
