@@ -33,14 +33,56 @@ public class Program
             Logger.Log($"Finding matches of RegEx [{regEx}] on text [{opts.File}]\n");
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
+
             if (useKMP)
                 UseKMP(opts, text, regEx, ref matches);
             else
                 UseAutomata(opts, text, regEx, ref matches);
 
-            matches = matches.Where(x => (matches.Where(y => y.Line == x.Line && y.Start == x.Start).Max(x => x.End) == x.End) && matches.Where(y => y.Line == x.Line && y.End == x.End).Min(x => x.Start) == x.Start).ToList();
             watch.Stop();
 
+            var lines = text.Split('\n');
+
+            if (opts.PrettyPrint)
+            {
+                for (int line = 0; line < lines.Length; line++)
+                {
+                    var prettyString = new PrettyString($"{lines[line]}");
+                    var lineMatches = matches.Where(x => x.Line == line);
+
+                    foreach (var match in lineMatches)
+                    {
+                        for (int i = match.Start; i < match.End; i++)
+                        {
+                            prettyString.Colors[i] = ConsoleColor.Green;
+                        }
+                    }
+                    
+                    Logger.Log(prettyString);
+                }
+            }
+            else
+            {
+                for (int line = 0; line < lines.Length; line++)
+                {
+                    var prettyString = new PrettyString($"{lines[line]}");
+
+                    if (matches.Any(x => x.Line == line))
+                    {
+                        var lineMatches = matches.Where(x => x.Line == line);
+
+                        foreach (var match in lineMatches)
+                        {
+                            for (int i = match.Start; i < match.End; i++)
+                            {
+                                prettyString.Colors[i] = ConsoleColor.Green;
+                            }
+                        }
+                        prettyString.Push($"Line {line} : ", ConsoleColor.Blue);
+                        Logger.PrettyLog(prettyString);
+                    }
+                }
+            }
 
             if (opts.PrintTime)
             {
@@ -52,41 +94,7 @@ public class Program
             if (opts.PrintCount)
                 Logger.LogSuccess($"Found {matches.Count} matche(s).\n");
 
-            var lines = text.Split('\n');
-            var prettyText = new List<PrettyString>();
 
-            if (opts.PrettyPrint)
-            {
-                for (int l = 0; l < lines.Length; l++)
-                {
-                    var prettyString = new PrettyString($"{lines[l]}");
-                    var lineMatches = matches.Where(x => x.Line == l);
-
-                    foreach (var match in lineMatches)
-                    {
-                        for (int i = match.Start; i < match.End; i++)
-                        {
-                            prettyString.Colors[i] = ConsoleColor.Green;
-                        }
-                    }
-
-                    prettyText.Add(prettyString);
-                }
-
-                Logger.PrettyLog(prettyText);
-            }
-            else
-            {
-                foreach (var match in matches)
-                {
-                    var line = lines[match.Line];
-                    // {(item.Start == item.End ? $"{line.SubStr(item.Start, item.End)}" : $"{line.SubStr(item.Start, item.End - 1)}")}
-                    Logger.Log($"Line {match.Line + 1} Column ({match.Start} - {match.End}) : {line}");
-
-                }
-
-                Logger.PrettyLog(prettyText);
-            }
         }
         // catch (InvalidRegExException e)
         // {

@@ -2,11 +2,18 @@ using EgrepCpy.RegEx;
 
 namespace EgrepCpy.Automaton;
 
-public struct Automata
+public class Automata
 {
     private List<int> initialStates;
     private List<int> finalStates;
     private List<List<int>> transitions;
+
+    public Automata()
+    {
+        initialStates = new List<int>();
+        finalStates = new List<int>();
+        transitions = new List<List<int>>();
+    }
 
     public Automata(List<int> initialStates, List<int> finalStates, List<List<int>> transitions)
     {
@@ -99,22 +106,19 @@ public struct Automata
         return res;
     }
 
-    public List<MatchResult> Match(string input)
+    public List<MatchResult> Match(string input) => input.Split('\n').SelectMany((line, index) => MatchLine(line, index)).ToList();
+
+    private List<MatchResult> MatchLine(string line, int index)
     {
-        var texts = input.Split('\n');
         var res = new List<MatchResult>();
 
-        for (int line = 0; line < texts.Length; line++)
+        var initialState = initialStates[0];
+
+        for (int start = 0; start < line.Length; start++)
         {
-            var text = texts[line];
-            var initialState = initialStates[0];
+            var ends = MatchFrom(line, start, initialState);
 
-            for (int start = 0; start < text.Length; start++)
-            {
-                var ends = MatchFrom(text, start, initialState);
-
-                res.AddRange(ends.Select(x => new MatchResult(line, start, x)));
-            }
+            res.AddRange(ends.Select(x => new MatchResult(index, start, x)));
         }
 
         return res;
