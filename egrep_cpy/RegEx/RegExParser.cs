@@ -1,6 +1,6 @@
-using Egrep_Cpy.Error;
+using EgrepCpy.Error;
 
-namespace Egrep_Cpy.RegEx;
+namespace EgrepCpy.RegEx;
 
 public static class RegExParser
 {

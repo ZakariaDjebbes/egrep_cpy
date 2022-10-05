@@ -1,4 +1,4 @@
-namespace Egrep_Cpy.Error;
+namespace EgrepCpy.Error;
 
 public class InvalidRegExException : Exception
 {

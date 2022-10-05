@@ -1,6 +1,6 @@
 #nullable disable
 
-namespace Egrep_Cpy.Log;
+namespace EgrepCpy.Log;
 
 using CommandLine;
 
@@ -16,7 +16,7 @@ public class CommandLineOptions
     [Option('d', "detail", Required = false, Default = false, HelpText = "Shows a detailed output with the RegEx tree, the NFA and the DFA results.")]
     public bool PrintDetails { get; set; }
 
-    [Option('n', "number", Required = false, Default = false, HelpText = "Shows the total number of matches found.")]
+    [Option('c', "count", Required = false, Default = false, HelpText = "Shows the count of matches found.")]
     public bool PrintCount { get; set; }
 
     [Option('w', "watch", Required = false, Default = false, HelpText = "Shows the time elapsed for parsing and matching the RegEx.")]

@@ -1,4 +1,4 @@
-namespace Egrep_Cpy;
+namespace EgrepCpy;
 
 public struct MatchResult 
 {

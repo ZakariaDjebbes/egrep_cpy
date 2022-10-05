@@ -1,4 +1,4 @@
-namespace Egrep_Cpy.Log;
+namespace EgrepCpy.Log;
 
 public struct PrettyString
 {

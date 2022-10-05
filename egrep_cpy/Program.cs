@@ -3,12 +3,12 @@
 
 using System.Text;
 using CommandLine;
-using Egrep_Cpy.Log;
-using Egrep_Cpy.Automaton;
-using Egrep_Cpy.RegEx;
-using Egrep_Cpy.Algorithms;
+using EgrepCpy.Log;
+using EgrepCpy.Automaton;
+using EgrepCpy.RegEx;
+using EgrepCpy.Algorithms;
 
-namespace Egrep_Cpy;
+namespace EgrepCpy;
 
 public class Program
 {

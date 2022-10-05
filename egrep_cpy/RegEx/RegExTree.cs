@@ -1,4 +1,4 @@
-namespace Egrep_Cpy.RegEx;
+namespace EgrepCpy.RegEx;
 
 public class RegExTree
 {

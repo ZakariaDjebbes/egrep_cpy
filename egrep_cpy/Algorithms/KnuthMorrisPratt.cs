@@ -1,6 +1,6 @@
-using Egrep_Cpy.Automaton;
+using EgrepCpy.Automaton;
 
-namespace Egrep_Cpy.Algorithms;
+namespace EgrepCpy.Algorithms;
 
 public class KnuthMorrisPratt
 {

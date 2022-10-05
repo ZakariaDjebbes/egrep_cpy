@@ -4,3 +4,4 @@ obj
 egrep_cpy/bin
 egrep_cpy/obj
 props.*
+.fake
