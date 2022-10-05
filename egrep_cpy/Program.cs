@@ -1,6 +1,7 @@
-﻿#nullable disable //null //null another time null
+﻿#nullable disable
 #define RELEASE
 
+using System.Diagnostics;
 using System.Text;
 using CommandLine;
 using EgrepCpy.Log;
@@ -32,14 +33,13 @@ public class Program
         {
             Logger.Log($"Finding matches of RegEx [{regEx}] on text [{opts.File}]\n");
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
+            TimeSpan time;
 
             if (useKMP)
-                UseKMP(opts, text, regEx, ref matches);
+                time = UseKMP(opts, text, regEx, ref matches);
             else
-                UseAutomata(opts, text, regEx, ref matches);
+                time = UseAutomata(opts, text, regEx, ref matches);
 
-            watch.Stop();
 
             var lines = text.Split('\n');
 
@@ -57,7 +57,7 @@ public class Program
                             prettyString.Colors[i] = ConsoleColor.Green;
                         }
                     }
-                    
+
                     Logger.Log(prettyString);
                 }
             }
@@ -78,6 +78,7 @@ public class Program
                                 prettyString.Colors[i] = ConsoleColor.Green;
                             }
                         }
+
                         prettyString.Push($"Line {line} : ", ConsoleColor.Blue);
                         Logger.PrettyLog(prettyString);
                     }
@@ -88,7 +89,7 @@ public class Program
             {
                 Logger.PrettyLog(new List<PrettyString> {
                     new PrettyString($"\nTime elapsed for parsing and matching the regex : "),
-                    new PrettyString($"{watch.Elapsed.Minutes}m {watch.Elapsed.Seconds}s {watch.Elapsed.Milliseconds}ms \n", ConsoleColor.Blue)});
+                    new PrettyString($"{time.Minutes}m {time.Seconds}s {time.Milliseconds}ms \n", ConsoleColor.Blue)});
             }
 
             if (opts.PrintCount)
@@ -116,10 +117,12 @@ public class Program
         }
     }
 
-    private static void UseKMP(CommandLineOptions opts, string text, string regEx, ref List<MatchResult> matches)
+    private static TimeSpan UseKMP(CommandLineOptions opts, string text, string regEx, ref List<MatchResult> matches)
     {
         var kmp = new KnuthMorrisPratt(regEx);
+        var watch = Stopwatch.StartNew();
         matches = kmp.Search(text);
+        watch.Stop();
 
         if (opts.PrintDetails)
         {
@@ -130,13 +133,17 @@ public class Program
             }
             Console.WriteLine();
         }
+
+        return watch.Elapsed;
     }
 
-    private static void UseAutomata(CommandLineOptions opts, string text, string regEx, ref List<MatchResult> matches)
+    private static TimeSpan UseAutomata(CommandLineOptions opts, string text, string regEx, ref List<MatchResult> matches)
     {
         RegExTree ret = RegExParser.Parse(regEx);
         Automata ndfa = NdfaGenerator.Generate(ret);
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         Automata dfa = DfaGenerator.Generate(ndfa);
+        watch.Stop();
         matches = dfa.Match(text);
 
         if (opts.PrintDetails)
@@ -149,6 +156,8 @@ public class Program
             Logger.LogInfo($"\t\t{dfa.ToString()}");
             Console.WriteLine();
         }
+
+        return watch.Elapsed;
     }
 
     public static string ToASCII(string text) => new ASCIIEncoding().GetString(Encoding.ASCII.GetBytes(text));

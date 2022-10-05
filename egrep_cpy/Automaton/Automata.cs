@@ -106,7 +106,7 @@ public class Automata
         return res;
     }
 
-    public List<MatchResult> Match(string input) => input.Split('\n').SelectMany((line, index) => MatchLine(line, index)).ToList();
+    public List<MatchResult> Match(string input) => input.Split('\n').AsParallel().SelectMany((line, index) => MatchLine(line, index)).ToList();
 
     private List<MatchResult> MatchLine(string line, int index)
     {
