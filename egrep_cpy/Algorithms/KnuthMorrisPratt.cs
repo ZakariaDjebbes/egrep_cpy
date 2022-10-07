@@ -47,7 +47,7 @@ public class KnuthMorrisPratt
                     {
                         var start = j - k;
                         matches.Add(new MatchResult(line, start, start + pattern.Length));
-                        k = carryOver[k - 1];
+                        k = carryOver[k];
                     }
                 }
                 else

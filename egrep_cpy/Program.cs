@@ -24,13 +24,13 @@ public class Program
 
     private static void Run(CommandLineOptions opts)
     {
-        var text = ToASCII(File.ReadAllText(opts.File));
-        var regEx = opts.RegEx;
-        List<MatchResult> matches = new();
-        var useKMP = RegExParser.ShouldUseKMP(regEx);
-
         try
         {
+            var text = ToASCII(File.ReadAllText(opts.File));
+            var regEx = opts.RegEx;
+            List<MatchResult> matches = null;
+            var useKMP = RegExParser.ShouldUseKMP(regEx);
+
             Logger.Log($"Finding matches of RegEx [{regEx}] on text [{opts.File}]\n");
 
             TimeSpan time;
@@ -42,13 +42,14 @@ public class Program
 
 
             var lines = text.Split('\n');
-
+            List<PrettyString> prettyStrings = new();
+            
             if (opts.PrettyPrint)
             {
                 for (int line = 0; line < lines.Length; line++)
                 {
                     var prettyString = new PrettyString($"{lines[line]}");
-                    var lineMatches = matches.Where(x => x.Line == line);
+                    var lineMatches = matches.AsParallel().Where(x => x.Line == line);
 
                     foreach (var match in lineMatches)
                     {
@@ -58,7 +59,7 @@ public class Program
                         }
                     }
 
-                    Logger.Log(prettyString);
+                    prettyStrings.Add(prettyString);
                 }
             }
             else
@@ -67,9 +68,9 @@ public class Program
                 {
                     var prettyString = new PrettyString($"{lines[line]}");
 
-                    if (matches.Any(x => x.Line == line))
+                    if (matches.AsParallel().Any(x => x.Line == line))
                     {
-                        var lineMatches = matches.Where(x => x.Line == line);
+                        var lineMatches = matches.AsParallel().Where(x => x.Line == line);
 
                         foreach (var match in lineMatches)
                         {
@@ -80,10 +81,12 @@ public class Program
                         }
 
                         prettyString.Push($"Line {line} : ", ConsoleColor.Blue);
-                        Logger.PrettyLog(prettyString);
+                        prettyStrings.Add(prettyString);
                     }
                 }
             }
+
+            Logger.PrettyLog(prettyStrings);
 
             if (opts.PrintTime)
             {
@@ -93,23 +96,17 @@ public class Program
             }
 
             if (opts.PrintCount)
-                Logger.LogSuccess($"Found {matches.Count} matche(s).\n");
-
-
+            {
+                // Logger.LogSuccess($"Found {matches.ToList().Count} matche(s).\n");
+            }
         }
-        // catch (InvalidRegExException e)
-        // {
-        //     var msg = "  >> Invalid RegEx: ";
-
-        //     Logger.LogError("  >> ERROR: " + e.Message);
-        //     Logger.LogError(msg + regEx);
-        //     Logger.LogError($"{new StringBuilder().Append(' ', msg.Length + e.Failure)}^" );
-        // }
         catch (Exception e)
         {
             Logger.LogError("  >> ERROR: " + e.Message);
             Logger.LogError("  >> StackTrace: " + e.StackTrace);
             Logger.LogError("  >> InnerException: " + e.InnerException);
+            Logger.LogError("  >> Source: " + e.Source);
+            Logger.LogError("  >> TargetSite: " + e.TargetSite);
         }
         finally
         {
@@ -143,8 +140,8 @@ public class Program
         Automata ndfa = NdfaGenerator.Generate(ret);
         var watch = System.Diagnostics.Stopwatch.StartNew();
         Automata dfa = DfaGenerator.Generate(ndfa);
-        watch.Stop();
         matches = dfa.Match(text);
+        watch.Stop();
 
         if (opts.PrintDetails)
         {
