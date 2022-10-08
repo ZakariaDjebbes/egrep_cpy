@@ -80,7 +80,7 @@ public class Program
                             }
                         }
 
-                        prettyString.Push($"Line {line} : ", ConsoleColor.Blue);
+                        prettyString.Push($"Line {line + 1} : ", ConsoleColor.Blue);
                         prettyStrings.Add(prettyString);
                     }
                 }

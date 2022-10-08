@@ -1,6 +1,7 @@
 .vscode
 bin
 obj
+out
 egrep_cpy/bin
 egrep_cpy/obj
 props.*
