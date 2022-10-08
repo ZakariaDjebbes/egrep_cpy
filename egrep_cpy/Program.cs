@@ -97,7 +97,7 @@ public class Program
 
             if (opts.PrintCount)
             {
-                // Logger.LogSuccess($"Found {matches.ToList().Count} matche(s).\n");
+                Logger.LogSuccess($"Found {matches.Count} matche(s).\n");
             }
         }
         catch (Exception e)
