@@ -7,3 +7,4 @@ egrep_cpy/obj
 props.*
 .fake
 BenchmarkDotNet.Artifacts
+props
