@@ -58,17 +58,3 @@ Copyright (C) 2022 egrep_cpy
     You CANNOT use it outside of the folder where the build.sh script is located AND you CANNOT use it in another terminal window unless you run the script again.
 
 5. Enjoy 😊! (hopefully 🤞)
-
-### 3. Using the dockerfile (Discouraged but still possible)
-
-1. Install docker [here](https://docs.docker.com/get-docker/).
-2. Go to the root folder (where the dockerfile file is located).
-3. Build the docker image using the following command :
-
-    > docker build -t egrep_cpy .
-
-4. Run the docker image.
-5. Your docker image will run the default command which is the egrep command on the babylon text with the regex "Sargon" and the -cw flags and print outputs to the console. You might not see the colored matches like the previous methods because the docker console does not support colors (I guess). Which is why i recommand using one of the previous methods.
-
-    You can change the file / regex / flags in the dockerfile directly and then rebuild/rerun.
-
