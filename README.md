@@ -3,7 +3,24 @@ This is a copy of the egrep command provided by some linux distributions. Made a
 
 # 2. How to run
 
-### 2. Manually (Recommanded)
+### 1. Using the shell script (build.sh)
+
+1. Install the dotnet SDK and runtime [here](https://dotnet.microsoft.com/en-us/download).
+2. Go to the root folder (where the readme file is located).
+3. Run the shell script using the source command (IMPORTANT).
+
+    > source build.sh
+
+4. You should see the output for the regex "Sargon" on the text babylon. 
+    You should now also be able to use the egrep command in your terminal. Obviously all previous flags still work here.
+
+    > egrep -f "resources/babylon.txt" -r "Sargon" -cw
+
+    You CANNOT use it outside of the folder where the build.sh script is located AND you CANNOT use it in another terminal window unless you run the script again.
+
+5. Enjoy 😊! (hopefully 🤞)
+
+### 2. Manually
 
 1. Install the dotnet SDK and runtime [here](https://dotnet.microsoft.com/en-us/download).
 2. Go to the root folder (where the readme file is located).
@@ -39,22 +56,5 @@ Copyright (C) 2022 egrep_cpy
 ```
 
 
-
-5. Enjoy 😊! (hopefully 🤞)
-
-### 2. Using the shell script (build.sh)
-
-1. Install the dotnet SDK and runtime [here](https://dotnet.microsoft.com/en-us/download).
-2. Go to the root folder (where the readme file is located).
-3. Run the shell script using the source command (IMPORTANT).
-
-    > source build.sh
-
-4. You should see the output for the regex "Sargon" on the text babylon. 
-    You should now also be able to use the egrep command in your terminal. Obviously all previous flags still work here.
-
-    > egrep -f "resources/babylon.txt" -r "Sargon" -cw
-
-    You CANNOT use it outside of the folder where the build.sh script is located AND you CANNOT use it in another terminal window unless you run the script again.
 
 5. Enjoy 😊! (hopefully 🤞)
