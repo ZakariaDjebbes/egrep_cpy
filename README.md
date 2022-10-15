@@ -1,6 +1,8 @@
 # 1. What is it
 This is a copy of the egrep command provided by some linux distributions. Made as part of a project for Sorbonne University.
 
+I do find the code quite self explicit as it is a simple implementation of the algorithms shown in the course, so I won't go into details about it.
+
 # 2. How to run
 
 ### 1. Using the shell script (build.sh)
@@ -11,6 +13,8 @@ This is a copy of the egrep command provided by some linux distributions. Made a
 
     > source build.sh
 
+    This will generate the binary under the out folder.
+
 4. You should see the output for the regex "Sargon" on the text babylon. 
     You should now also be able to use the egrep command in your terminal. Obviously all previous flags still work here.
 
@@ -19,6 +23,8 @@ This is a copy of the egrep command provided by some linux distributions. Made a
     You CANNOT use it outside of the folder where the build.sh script is located AND you CANNOT use it in another terminal window unless you run the script again.
 
 5. Enjoy 😊! (hopefully 🤞)
+
+Note that you can also run the binary file directly by going to the out folder and running ```./egrep_cpy -f <file> -r <regex> <other flags>```. 
 
 ### 2. Manually
 
@@ -58,3 +64,10 @@ Copyright (C) 2022 egrep_cpy
 
 
 5. Enjoy 😊! (hopefully 🤞)
+
+# 3. Sample output
+
+Here is a sample output for the regex "Sargon" on the text babylon.
+
+
+![Sample output](SampleOutput.jpg)

@@ -1,4 +1,5 @@
 .vscode
+.vs
 bin
 obj
 out
@@ -9,3 +10,4 @@ props.*
 BenchmarkDotNet.Artifacts
 props
 .idea
+*.rar

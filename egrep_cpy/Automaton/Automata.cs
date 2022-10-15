@@ -83,6 +83,19 @@ public class Automata
         return uniqueTransitions;
     }
 
+    // Returns a list of all the positions where the automata matches the text.
+    public List<MatchResult> Match(string input) => input.Split('\n').AsParallel().SelectMany((line, index) => MatchLine(line, index)).ToList();
+
+    public bool IsFinalState(int state) => FinalStates.Contains(state);
+
+    public bool IsInitialState(int state) => InitialStates.Contains(state);
+
+    public override string ToString()
+    {
+        return $"Initial States: {TableToString(initialStates)} Final States: {TableToString(finalStates)}"
+               + $" Transitions: {MultiDimArrayToString(transitions)}";
+    }
+
     private List<int> MatchFrom(string text, int startChar, int startState)
     {
         var res = new List<int>();
@@ -106,8 +119,6 @@ public class Automata
         return res;
     }
 
-    public List<MatchResult> Match(string input) => input.Split('\n').AsParallel().SelectMany((line, index) => MatchLine(line, index)).ToList();
-
     private List<MatchResult> MatchLine(string line, int index)
     {
         var res = new List<MatchResult>();
@@ -122,16 +133,6 @@ public class Automata
         }
 
         return res;
-    }
-
-    public bool IsFinalState(int state) => FinalStates.Contains(state);
-
-    public bool IsInitialState(int state) => InitialStates.Contains(state);
-
-    public override string ToString()
-    {
-        return $"Initial States: {TableToString(initialStates)} Final States: {TableToString(finalStates)}"
-               + $" Transitions: {MultiDimArrayToString(transitions)}";
     }
 
     private String CodeToString(int code)
